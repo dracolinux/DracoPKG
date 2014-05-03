@@ -1,0 +1,9 @@
+- move hardcoded stuff to settings etc
+- pkgsrc:remove|update packages
+- pkgtools/slackpkg:update|install|remove packages
+- pkgin:update|install|remove packages
+- pkgsrc:cvs update
+- pkgsrc:switch branch
+- pkgsrc:remove bootstrap
+
+And more ...
