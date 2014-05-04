@@ -1,92 +1,58 @@
 #
-# DracoPKG
-# http://www.dracolinux.org - http://github.com/dracolinux
-#
+# DracoPKG - Simple Package management D-Bus service.
 # Copyright (c) 2014 Ole Andre Rodlie <olear@dracolinux.org>. All rights reserved.
 #
-# libDracoPKG is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License version 2.1.
 # DracoPKG is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License version 2.
 #
 
-TEMPLATE                     = subdirs
-SUBDIRS                      = lib daemon clients
-CONFIG                      += ordered
-VERSION                      = 0.1
-DESTDIR                      = build
+QT                                  += core dbus network xml
+QT                                  -= gui
+TARGET                               = DracoPKG
+VERSION                              = 1.0.0
+CONFIG                              += console
+CONFIG                              -= app_bundle
+TEMPLATE                             = app
+SOURCES                             += DracoPKG.cpp
+
+DESTDIR                              = build
+OBJECTS_DIR                          = $${DESTDIR}/.obj
+
+LIBS                                += "-lDracoPKG"
 
 isEmpty(PREFIX) {
-    PREFIX                   = /usr/local
+    PREFIX                           = /usr/local
 }
 
-isEmpty(SYSCONFDIR) {
-    SYSCONFDIR               = /etc/dbus-1/system.d
+isEmpty(DBUS_CONF) {
+    DBUS_CONF                        = /etc/dbus-1/system.d
 }
 
-isEmpty(BINDIR) {
-    BINDIR                   = $$PREFIX/bin
-}
-
-isEmpty(SBINDIR) {
-    SBINDIR                  = $$PREFIX/sbin
-}
-
-isEmpty(INCLUDEDIR) {
-    INCLUDEDIR               = $$PREFIX/include
-}
-
-isEmpty(DATAROOTDIR) {
-    DATAROOTDIR              = /usr/share/dbus-1/system-services
+isEmpty(DBUS_SERVICE) {
+    DBUS_SERVICE                     = /usr/share/dbus-1/system-services
 }
 
 isEmpty(DOCDIR) {
-    DOCDIR                   = $$PREFIX/share/doc/DracoPKG-$$VERSION
+    DOCDIR                           = $$PREFIX/share/doc/$${TARGET}-$${VERSION}
 }
 
-LIBDIR                       = $$PREFIX/lib$$LIBSUFFIX
+target.path                          = $${PREFIX}/sbin
+target_dbus_conf.path                = $${DBUS_CONF}
+target_dbus_service.path             = $${DBUS_SERVICE}
 
-SYSCONFDIR_FILES             = build/etc/dbus-1/system.d/org.dracolinux.DracoPKG.conf
-BINDIR_FILES                 = build/bin/DracoPKG-gui-test
-SBINDIR_FILES                = build/sbin/DracoPKG
-INCLUDEDIR_FILES             = build/include/DracoPKG
-DATAROOTDIR_FILES            = build/share/dbus-1/system-services/org.dracolinux.DracoPKG.service
-LIBDIR_FILES                 = build/lib/libDracoPKG.*
-DOCDIR_FILES                 = README COPYING COPYING.LIB
+target_dbus_conf.files               = org.dracolinux.DracoPKG.conf
+target_dbus_service.commands         = $$quote(echo "\"[D-BUS Service]"\" > ${INSTALL_ROOT}$${DBUS_SERVICE}/org.dracolinux.DracoPKG.service$$escape_expand(\\n\\t))
+target_dbus_service.commands        += $$quote(echo "\"Name=org.dracolinux.DracoPKG"\" >> ${INSTALL_ROOT}$${DBUS_SERVICE}/org.dracolinux.DracoPKG.service$$escape_expand(\\n\\t))
+target_dbus_service.commands        += $$quote(echo "\"Exec=$${PREFIX}/sbin/DracoPKG"\" >> ${INSTALL_ROOT}$${DBUS_SERVICE}/org.dracolinux.DracoPKG.service$$escape_expand(\\n\\t))
+target_dbus_service.commands        += $$quote(echo "\"User=root"\" >> ${INSTALL_ROOT}$${DBUS_SERVICE}/org.dracolinux.DracoPKG.service$$escape_expand(\\n\\t))
 
-target_sysconfdir.path       = $$SYSCONFDIR
-target_sysconfdir.files      = $$SYSCONFDIR_FILES
+target_docs.path                     = $$DOCDIR
+target_docs.files                    = COPYING README
 
-target_bindir.path           = $$BINDIR
-target_bindir.files          = $$BINDIR_FILES
-
-target_sbindir.path          = $$SBINDIR
-target_sbindir.files         = $$SBINDIR_FILES
-
-target_includedir.path       = $$INCLUDEDIR
-target_includedir.files      = $$INCLUDEDIR_FILES
-
-target_datarootdir.path      = $$DATAROOTDIR
-target_datarootdir.files     = $$DATAROOTDIR_FILES
-
-target_libdir.path           = $$LIBDIR
-target_libdir.files          = $$LIBDIR_FILES
-
-target_docdir.path           = $$DOCDIR
-target_docdir.files          = $$DOCDIR_FILES
-
-INSTALLS                    += target_sysconfdir \
-                               target_bindir \
-                               target_sbindir \
-                               target_includedir \
-                               target_datarootdir \
-                               target_libdir \
-                               target_docdir
+INSTALLS                            += target target_dbus_conf target_dbus_service target_docs
+QMAKE_CLEAN                         += $${DESTDIR}/*
+QMAKE_POST_LINK                     += $$quote(strip -s $${DESTDIR}/$${TARGET}$$escape_expand(\\n\\t))
 
 message("PREFIX: $$PREFIX")
-message("SYSCONFDIR: $$SYSCONFDIR")
-message("BINDIR: $$BINDIR")
-message("SBINDIR: $$SBINDIR")
-message("INCLUDEDIR: $$INCLUDEDIR")
-message("DATAROOTDIR: $$DATAROOTDIR")
-message("DOCDIR: $$DOCDIR")
-message("LIBDIR: $$LIBDIR")
-message("LIBSUFFIX: $$LIBSUFFIX")
+message("DBUS_CONF: $${DBUS_CONF}")
+message("DBUS_SERVICE: $${DBUS_SERVICE}")
+message("DOCDIR: $${DOCDIR}")
