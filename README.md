@@ -33,6 +33,11 @@ Install
  * Default documentation path is PREFIX/share/doc/NAME-VERSION, you can override this with the DOCDIR variable.
  * INSTALL_ROOT is supported during install.
 
+Usage
+=====
+
+If you installed through "make install", then DracoPKG will be started by D-Bus on-demand.
+
 Links
 =====
 
