@@ -15,18 +15,14 @@ Requirements
 Build
 =====
 
-```
 # qmake
 # make
-```
 
 Install
 =======
 
-```
 # qmake
 # make install
-```
 
  * Default installation path is /usr/local, you can override this with the PREFIX variable.
  * Default installation path for the D-Bus service and configuration file are /usr/share/dbus-1/system-services and /etc/dbus-1/system.d, you can override this with the DBUS_SERVICE and DBUS_CONF variables.
