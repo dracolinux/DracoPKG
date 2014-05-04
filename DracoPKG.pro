@@ -8,43 +8,85 @@
 # DracoPKG is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License version 2.
 #
 
-TEMPLATE = subdirs
-SUBDIRS = lib daemon clients
-CONFIG += ordered
-VERSION = 0.1
+TEMPLATE                     = subdirs
+SUBDIRS                      = lib daemon clients
+CONFIG                      += ordered
+VERSION                      = 0.1
+DESTDIR                      = build
 
-isEmpty(PREFIX) {PREFIX=/usr/local}
-isEmpty(SYSCONFDIR) {SYSCONFDIR=/etc/dbus-1/system.d}
-isEmpty(BINDIR) {BINDIR=$$PREFIX/bin}
-isEmpty(SBINDIR) {SBINDIR=$$PREFIX/sbin}
-isEmpty(INCLUDEDIR) {INCLUDEDIR=$$PREFIX/include}
-isEmpty(DATAROOTDIR) {DATAROOTDIR=/usr/share/dbus-1/system-services}
-isEmpty(DOCDIR) {DOCDIR=$$PREFIX/share/doc/DracoPKG-$$VERSION}
+isEmpty(PREFIX) {
+    PREFIX                   = /usr/local
+}
 
-SYSCONFDIR_FILES = build/etc/dbus-1/system.d/org.dracolinux.DracoPKG.conf
-BINDIR_FILES = build/bin/DracoPKG-gui-test
-SBINDIR_FILES = build/sbin/DracoPKG
-INCLUDEDIR_FILES = build/include/DracoPKG
-DATAROOTDIR_FILES = build/share/dbus-1/system-services/org.dracolinux.DracoPKG.service
-DOCDIR_FILES = README COPYING COPYING.LIB
+isEmpty(SYSCONFDIR) {
+    SYSCONFDIR               = /etc/dbus-1/system.d
+}
 
-target_sysconfdir.path= $$SYSCONFDIR
-target_sysconfdir.files= $$SYSCONFDIR_FILES
+isEmpty(BINDIR) {
+    BINDIR                   = $$PREFIX/bin
+}
 
-target_bindir.path= $$BINDIR
-target_bindir.files= $$BINDIR_FILES
+isEmpty(SBINDIR) {
+    SBINDIR                  = $$PREFIX/sbin
+}
 
-target_sbindir.path= $$SBINDIR
-target_sbindir.files= $$SBINDIR_FILES
+isEmpty(INCLUDEDIR) {
+    INCLUDEDIR               = $$PREFIX/include
+}
 
-target_includedir.path= $$INCLUDEDIR
-target_includedir.files= $$INCLUDEDIR_FILES
+isEmpty(DATAROOTDIR) {
+    DATAROOTDIR              = /usr/share/dbus-1/system-services
+}
 
-target_datarootdir.path= $$DATAROOTDIR
-target_datarootdir.files= $$DATAROOTDIR_FILES
+isEmpty(DOCDIR) {
+    DOCDIR                   = $$PREFIX/share/doc/DracoPKG-$$VERSION
+}
 
-target_docdir.path= $$DOCDIR
-target_docdir.files= $$DOCDIR_FILES
+LIBDIR                       = $$PREFIX/lib$$LIBSUFFIX
 
-INSTALLS += target_sysconfdir target_bindir target_sbindir target_includedir target_datarootdir target_docdir
+SYSCONFDIR_FILES             = build/etc/dbus-1/system.d/org.dracolinux.DracoPKG.conf
+BINDIR_FILES                 = build/bin/DracoPKG-gui-test
+SBINDIR_FILES                = build/sbin/DracoPKG
+INCLUDEDIR_FILES             = build/include/DracoPKG
+DATAROOTDIR_FILES            = build/share/dbus-1/system-services/org.dracolinux.DracoPKG.service
+LIBDIR_FILES                 = build/lib/libDracoPKG.*
+DOCDIR_FILES                 = README COPYING COPYING.LIB
 
+target_sysconfdir.path       = $$SYSCONFDIR
+target_sysconfdir.files      = $$SYSCONFDIR_FILES
+
+target_bindir.path           = $$BINDIR
+target_bindir.files          = $$BINDIR_FILES
+
+target_sbindir.path          = $$SBINDIR
+target_sbindir.files         = $$SBINDIR_FILES
+
+target_includedir.path       = $$INCLUDEDIR
+target_includedir.files      = $$INCLUDEDIR_FILES
+
+target_datarootdir.path      = $$DATAROOTDIR
+target_datarootdir.files     = $$DATAROOTDIR_FILES
+
+target_libdir.path           = $$LIBDIR
+target_libdir.files          = $$LIBDIR_FILES
+
+target_docdir.path           = $$DOCDIR
+target_docdir.files          = $$DOCDIR_FILES
+
+INSTALLS                    += target_sysconfdir \
+                               target_bindir \
+                               target_sbindir \
+                               target_includedir \
+                               target_datarootdir \
+                               target_libdir \
+                               target_docdir
+
+message("PREFIX: $$PREFIX")
+message("SYSCONFDIR: $$SYSCONFDIR")
+message("BINDIR: $$BINDIR")
+message("SBINDIR: $$SBINDIR")
+message("INCLUDEDIR: $$INCLUDEDIR")
+message("DATAROOTDIR: $$DATAROOTDIR")
+message("DOCDIR: $$DOCDIR")
+message("LIBDIR: $$LIBDIR")
+message("LIBSUFFIX: $$LIBSUFFIX")

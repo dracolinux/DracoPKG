@@ -1,0 +1,26 @@
+DracoPKG
+
+http://www.dracolinux.org - http://github.com/dracolinux
+
+Copyright (c) 2014 Ole Andre Rodlie <olear@dracolinux.org>. All rights reserved.
+
+ABOUT
+
+DracoPKG is a package management suite for DracoLinux and compatible.
+
+INSTALL
+
+qmake && make install
+
+Example:
+
+qmake PREFIX=/usr LIBSUFFIX=64 && make INSTALL_ROOT=/tmp install
+
+LICENSE
+
+libDracoPKG is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License version 2.1.
+DracoPKG is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License version 2.
+
+DracoPKG is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+You should have received a copy of the GNU Lesser General Public License version 2.1 and GNU General Public License version 2 along with DracoPKG.  If not, see <http://www.gnu.org/licenses/>.

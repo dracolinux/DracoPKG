@@ -10,10 +10,8 @@ TEMPLATE = app
 SOURCES += main.cpp client.cpp
 HEADERS  += client.h
 FORMS    += client.ui
-
 DESTDIR = ../../build/bin
-
-OBJECTS_DIR = build/.obj
-MOC_DIR = build/.moc
-RCC_DIR = build/.qrc
-UI_DIR = build/.ui
+OBJECTS_DIR = build/obj
+MOC_DIR = build/moc
+RCC_DIR = build/qrc
+UI_DIR = build/ui
