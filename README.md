@@ -36,7 +36,7 @@ Install
 Usage
 =====
 
-If you installed through "make install", then DracoPKG will be started by D-Bus on-demand.
+DracoPKG will be started by D-Bus on-demand. Any D-Bus client will work, note that the default settings only allows members of the group "wheel" to use the service.
 
 Links
 =====
