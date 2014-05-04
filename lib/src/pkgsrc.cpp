@@ -1,10 +1,9 @@
 /*
-libDracoPKG
-http://www.dracolinux.org - http://github.com/olear/DracoPKG
-
-Copyright (c) 2014 Ole Andre Rodlie <olear@dracolinux.org>. All rights reserved.
-
-libDracoPKG is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License version 2.1.
+# libDracoPKG - Package management library.
+#
+# Copyright (c) 2014 Ole Andre Rodlie <olear@dracolinux.org>. All rights reserved.
+#
+# libDracoPKG is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License version 2.1.
 */
 
 #include "pkgsrc.h"
@@ -66,19 +65,24 @@ PkgSrc::PkgSrc(QObject *parent) :
 
 bool PkgSrc::downloadStart()
 {
-    QString tmpdir;
+    QString tmp_dir;
     int uid = 0;
     uid = getuid();
 
     if (uid>0) {
-        tmpdir = QDir::homePath()+"/userpkg/";
+        tmp_dir = QDir::homePath()+"/tmp";
     }
     else {
-        tmpdir = "/root/";
+        tmp_dir = "/root/tmp";
     }
 
-    pkgsrcDownloadFile = new QFile(tmpdir+"pkgsrc.tar.xz");
-    pkgsrcDownloadMd5 = new QFile(tmpdir+"pkgsrc.tar.xz.MD5");
+    QDir tmp;
+    if (!tmp.exists(tmp_dir)) {
+        tmp.mkdir(tmp_dir);
+    }
+
+    pkgsrcDownloadFile = new QFile(tmp_dir+"/pkgsrc.tar.xz");
+    pkgsrcDownloadMd5 = new QFile(tmp_dir+"/pkgsrc.tar.xz.MD5");
 
     if (pkgsrcDownloadMd5->open(QIODevice::WriteOnly) && pkgsrcDownloadFile->open(QIODevice::WriteOnly)) {
         pkgsrcDownload->connectToHost("ftp.netbsd.org");
@@ -139,31 +143,35 @@ bool PkgSrc::extractStart()
 {
     bool status = false;
     QString pkgsrc_dir;
-    QString tmpdir;
+    QString pkgsrc_file;
+    QString tmp_dir;
+
     int uid = 0;
     uid = getuid();
 
     if (uid>0) {
-        pkgsrc_dir = QDir::homePath()+"/userpkg/pkgsrc";
-        tmpdir = QDir::homePath()+"/userpkg/";
+        pkgsrc_dir = QDir::homePath()+"/pkgsrc";
+        tmp_dir = QDir::homePath()+"/tmp";
     }
     else {
         pkgsrc_dir = "/usr/pkgsrc";
-        tmpdir = "/root/";
+        tmp_dir = "/root/tmp";
     }
 
+    pkgsrc_file = tmp_dir+"/pkgsrc.tar.xz";
+    QFile pkgsrcFile(pkgsrc_file);
+
     QDir pkgsrc;
-    if (!pkgsrc.exists(pkgsrc_dir)&&!pkgsrcBootstrap->isOpen()&&!pkgsrcBmake->isOpen()) {
+    if (!pkgsrc.exists(pkgsrc_dir) && pkgsrcFile.exists(pkgsrc_file) && !pkgsrcBootstrap->isOpen() && !pkgsrcBmake->isOpen()) {
         QStringList args;
-        args << "xvf" << tmpdir+"pkgsrc.tar.xz";
+        args << "xvf" << pkgsrc_file << "-C";
         if (uid>0) {
-            pkgsrcExtract->setWorkingDirectory(QDir::homePath()+"/userpkg");
+            args << QDir::homePath();
         }
         else {
-            pkgsrcExtract->setWorkingDirectory("/usr");
+            args << "/usr";
         }
         pkgsrcExtract->start("tar",args);
-        pkgsrcExtract->waitForStarted();
         status = true;
     }
 
@@ -185,45 +193,62 @@ bool PkgSrc::bootstrapStart()
 {
     bool status = false;
     QString bmake_exec;
+    QString workdir;
+    QStringList args;
     int uid = 0;
     uid = getuid();
 
     if (uid>0) {
-        bmake_exec = QDir::homePath()+"/userpkg/pkg/bin/bmake";
+        bmake_exec = QDir::homePath()+"/pkg/bin/bmake";
+        workdir = QDir::homePath()+"/pkgsrc/bootstrap";
+        args << "--pkgdbdir="+QDir::homePath()+"/.pkgdb" << "--prefix="+QDir::homePath()+"/pkg" << "--unprivileged" <<  "--prefer-pkgsrc=yes";
     }
     else {
-        QFile native_bmake("/usr/bin/bmake");
+        /*QFile native_bmake("/usr/bin/bmake");
         if (native_bmake.exists()) {
             bmake_exec = "/usr/bin/bmake";
         }
-        else {
+        else {*/
             bmake_exec = "/usr/pkg/bin/bmake";
-        }
+            workdir = "/usr/pkgsrc/bootstrap";
+            args << "--prefix=/usr/pkg"; // << "--prefer-pkgsrc=yes";
+        //}
     }
 
     QFile bmake(bmake_exec);
-    if (!bmake.exists()&&!pkgsrcBootstrap->isOpen()&&!pkgsrcBmake->isOpen()) {
-        QStringList args;
+    QDir bootstrap_dir(workdir);
+    if (!bmake.exists()&&bootstrap_dir.exists(workdir)&&!pkgsrcBootstrap->isOpen()&&!pkgsrcBmake->isOpen()) {
 
+
+        QString mkIncFileName = "mk-fragment.conf";
+        QFile mkIncFile(workdir+"/"+mkIncFileName);
+        if (mkIncFile.exists(workdir+"/"+mkIncFileName))
+        {
+            mkIncFile.remove();
+        }
+        if (mkIncFile.open(QIODevice::WriteOnly))
+        {
+            args << "--mk-fragment="+mkIncFileName;
+            QTextStream textStream(&mkIncFile);
+            textStream << "MAKE_JOBS = 4\n";
+            textStream << "SKIP_LICENSE_CHECK = yes\n";
+            textStream << "ALLOW_VULNERABLE_PACKAGES = yes\n";
+            mkIncFile.close();
+        }
+
+        bootstrapClean();
         QProcessEnvironment buildEnv = QProcessEnvironment::systemEnvironment();
-        buildEnv.insert("MAKE_JOBS","4");
-
         QFile bash("/bin/bash");
         if (bash.exists()) {
             buildEnv.insert("SH","/bin/bash");
         }
-
-        if (uid>0) {
-            args << "--pkgdbdir="+QDir::homePath()+"/userpkg/var/db/pkg" << "--prefix="+QDir::homePath()+"/userpkg/pkg" << "--varbase="+QDir::homePath()+"/userpkg/var" << "--unprivileged"; // <<  "--prefer-pkgsrc=yes";
-            pkgsrcBootstrap->setWorkingDirectory(QDir::homePath()+"/userpkg/pkgsrc/bootstrap");
-        }
-        else {
-            args << "--prefix=/usr/pkg" << "--varbase=/usr/pkg/var"; // << "--prefer-pkgsrc=yes";
-            pkgsrcBootstrap->setWorkingDirectory("/usr/pkgsrc/bootstrap");
-        }
-
+        pkgsrcBootstrap->setWorkingDirectory(workdir);
         pkgsrcBootstrap->setProcessEnvironment(buildEnv);
         pkgsrcBootstrap->start("./bootstrap",args);
+        status = true;
+    }
+
+    if (bmake.exists()) {
         status = true;
     }
 
@@ -247,14 +272,15 @@ void PkgSrc::bootstrapProgress()
 bool PkgSrc::bootstrapClean()
 {
     QString dir;
+    QString path = "/pkgsrc/bootstrap/work";
     int uid = 0;
     uid = getuid();
 
     if (uid>0) {
-        dir = QDir::homePath()+"/userpkg/pkgsrc/bootstrap/work";
+        dir = QDir::homePath()+path;
     }
     else {
-        dir = "/usr/pkgsrc/bootstrap/work";
+        dir = "/usr"+path;
     }
 
     if (dirClean(dir)) {
@@ -305,38 +331,33 @@ bool PkgSrc::bmakeStart(QString pkg, QString cat, QString options, QString actio
     if (!pkg.isEmpty()&&!cat.isEmpty()&&!action.isEmpty()&&!pkgsrcBmake->isOpen()&&!pkgsrcBootstrap->isOpen()) {
         QStringList args;
         args << action;
-        QProcessEnvironment buildEnv = QProcessEnvironment::systemEnvironment();
-        buildEnv.insert("MAKE_JOBS","4");
-
-        if (!options.isEmpty()) {
-            buildEnv.insert("PKG_OPTIONS."+pkg, options);
-        }
-
-        buildEnv.insert("SKIP_LICENSE_CHECK","yes");
-        buildEnv.insert("ALLOW_VULNERABLE_PACKAGES","yes");
-        pkgsrcBmake->setProcessEnvironment(buildEnv);
-
         int uid = 0;
         uid = getuid();
         QString bmake_exec;
         QString workdir;
 
+        QProcessEnvironment buildEnv = QProcessEnvironment::systemEnvironment();
+        if (!options.isEmpty()) {
+            buildEnv.insert("PKG_OPTIONS."+pkg, options);
+        }
+
         if (uid>0) {
-            workdir = QDir::homePath()+"/userpkg/pkgsrc/"+cat+"/"+pkg;
-            bmake_exec = QDir::homePath()+"/userpkg/pkg/bin/bmake";
+            workdir = QDir::homePath()+"/pkgsrc/"+cat+"/"+pkg;
+            bmake_exec = QDir::homePath()+"/pkg/bin/bmake";
         }
         else {
             workdir = "/usr/pkgsrc/"+cat+"/"+pkg;
-            QFile native_bmake("/usr/bin/bmake");
+            /*QFile native_bmake("/usr/bin/bmake");
             if (native_bmake.exists()) {
                 bmake_exec = "/usr/bin/bmake";
             }
-            else {
+            else {*/
                 bmake_exec = "/usr/pkg/bin/bmake";
-            }
+            //}
         }
 
         if (!bmake_exec.isEmpty()&&!workdir.isEmpty()) {
+            pkgsrcBmake->setProcessEnvironment(buildEnv);
             pkgsrcBmake->setWorkingDirectory(workdir);
             pkgsrcBmake->start(bmake_exec,args);
             status = true;
@@ -381,21 +402,21 @@ bool PkgSrc::bmakeActive()
 QString PkgSrc::branchVersion()
 {
     QString branch;
-    QString tagFile;
+    QString tagFile = "/CVS/Tag";
     QString pkgsrcDir;
     int uid = 0;
     uid = getuid();
 
     if (uid>0) {
-        tagFile = QDir::homePath()+"/userpkg/pkgsrc/CVS/Tag";
-        pkgsrcDir = QDir::homePath()+"/userpkg/pkgsrc";
+        //tagFile = QDir::homePath()+"/userpkg/pkgsrc/CVS/Tag";
+        pkgsrcDir = QDir::homePath()+"/pkgsrc";
     }
     else {
-        tagFile = "/usr/pkgsrc/CVS/Tag";
+        //tagFile = "/usr/pkgsrc/CVS/Tag";
         pkgsrcDir = "/usr/pkgsrc";
     }
 
-    QFile pkgsrcTagFile(tagFile);
+    QFile pkgsrcTagFile(pkgsrcDir+tagFile);
     if (pkgsrcTagFile.exists()) {
         if (pkgsrcTagFile.open(QIODevice::ReadOnly)) {
             QTextStream textStream(&pkgsrcTagFile);
@@ -425,18 +446,18 @@ bool PkgSrc::packageOptionsRequest(QString pkg, QString cat)
         QString workdir;
 
         if (uid>0) {
-            workdir = QDir::homePath()+"/userpkg/pkgsrc/"+cat+"/"+pkg;
-            bmake_exec = QDir::homePath()+"/userpkg/pkg/bin/bmake";
+            workdir = QDir::homePath()+"/pkgsrc/"+cat+"/"+pkg;
+            bmake_exec = QDir::homePath()+"/pkg/bin/bmake";
         }
         else {
             workdir = "/usr/pkgsrc/"+cat+"/"+pkg;
-            QFile native_bmake("/usr/bin/bmake");
+            /*QFile native_bmake("/usr/bin/bmake");
             if (native_bmake.exists()) {
                 bmake_exec = "/usr/bin/bmake";
             }
-            else {
+            else {*/
                 bmake_exec = "/usr/pkg/bin/bmake";
-            }
+            //}
         }
 
         if (!bmake_exec.isEmpty()&&!workdir.isEmpty()) {
@@ -525,18 +546,18 @@ bool PkgSrc::packageDependsRequest(QString pkg, QString cat)
         QString workdir;
 
         if (uid>0) {
-            workdir = QDir::homePath()+"/userpkg/pkgsrc/"+cat+"/"+pkg;
-            bmake_exec = QDir::homePath()+"/userpkg/pkg/bin/bmake";
+            workdir = QDir::homePath()+"/pkgsrc/"+cat+"/"+pkg;
+            bmake_exec = QDir::homePath()+"/pkg/bin/bmake";
         }
         else {
             workdir = "/usr/pkgsrc/"+cat+"/"+pkg;
-            QFile native_bmake("/usr/bin/bmake");
+            /*QFile native_bmake("/usr/bin/bmake");
             if (native_bmake.exists()) {
                 bmake_exec = "/usr/bin/bmake";
             }
-            else {
+            else {*/
                 bmake_exec = "/usr/pkg/bin/bmake";
-            }
+            //}
         }
 
         if (!bmake_exec.isEmpty()&&!workdir.isEmpty()) {
@@ -574,7 +595,7 @@ QStringList PkgSrc::categoryList()
     QString workdir;
 
     if (uid>0) {
-        workdir = QDir::homePath()+"/userpkg/pkgsrc/";
+        workdir = QDir::homePath()+"/pkgsrc/";
     }
     else {
         workdir = "/usr/pkgsrc/";
@@ -606,7 +627,7 @@ QStringList PkgSrc::packageList(QString cat, QString search)
     QString searchdir;
 
     if (uid>0) {
-        workdir = QDir::homePath()+"/userpkg/pkgsrc/";
+        workdir = QDir::homePath()+"/pkgsrc/";
         searchdir = workdir;
     }
     else {
@@ -633,8 +654,7 @@ QStringList PkgSrc::packageList(QString cat, QString search)
             }
         }
     }
-    else
-    {
+    else {
         QDir pkgsrc(workdir);
         QFileInfoList pkgsrcList(pkgsrc.entryInfoList(QDir::NoDotAndDotDot|QDir::AllDirs));
         foreach (QFileInfo folder, pkgsrcList) {
@@ -662,7 +682,7 @@ void PkgSrc::packageCleanRequest()
     QString workdir;
 
     if (uid>0) {
-        workdir = QDir::homePath()+"/userpkg/pkg/bin/";
+        workdir = QDir::homePath()+"/pkg/bin/";
     }
     else {
         workdir = "/usr/pkg/bin/";
@@ -683,7 +703,7 @@ void PkgSrc::packagesInstalledRequest()
     QString workdir;
 
     if (uid>0) {
-        workdir = QDir::homePath()+"/userpkg/pkg/sbin/";
+        workdir = QDir::homePath()+"/pkg/sbin/";
     }
     else {
         workdir = "/usr/pkg/sbin/";
@@ -733,18 +753,18 @@ bool PkgSrc::packageVersionRequest(QString pkg, QString cat)
         QString workdir;
 
         if (uid>0) {
-            workdir = QDir::homePath()+"/userpkg/pkgsrc/"+cat+"/"+pkg;
-            bmake_exec = QDir::homePath()+"/userpkg/pkg/bin/bmake";
+            workdir = QDir::homePath()+"/pkgsrc/"+cat+"/"+pkg;
+            bmake_exec = QDir::homePath()+"/pkg/bin/bmake";
         }
         else {
             workdir = "/usr/pkgsrc/"+cat+"/"+pkg;
-            QFile native_bmake("/usr/bin/bmake");
+            /*QFile native_bmake("/usr/bin/bmake");
             if (native_bmake.exists()) {
                 bmake_exec = "/usr/bin/bmake";
             }
-            else {
+            else {*/
                 bmake_exec = "/usr/pkg/bin/bmake";
-            }
+            //}
         }
 
         if (!bmake_exec.isEmpty()&&!workdir.isEmpty()) {
@@ -784,18 +804,18 @@ bool PkgSrc::packageNameRequest(QString pkg, QString cat)
         QString workdir;
 
         if (uid>0) {
-            workdir = QDir::homePath()+"/userpkg/pkgsrc/"+cat+"/"+pkg;
-            bmake_exec = QDir::homePath()+"/userpkg/pkg/bin/bmake";
+            workdir = QDir::homePath()+"/pkgsrc/"+cat+"/"+pkg;
+            bmake_exec = QDir::homePath()+"/pkg/bin/bmake";
         }
         else {
             workdir = "/usr/pkgsrc/"+cat+"/"+pkg;
-            QFile native_bmake("/usr/bin/bmake");
+            /*QFile native_bmake("/usr/bin/bmake");
             if (native_bmake.exists()) {
                 bmake_exec = "/usr/bin/bmake";
             }
-            else {
+            else {*/
                 bmake_exec = "/usr/pkg/bin/bmake";
-            }
+            //}
         }
 
         if (!bmake_exec.isEmpty()&&!workdir.isEmpty()) {
@@ -830,7 +850,7 @@ void PkgSrc::packagesVulnsRequest()
     QString workdir;
 
     if (uid>0) {
-        workdir = QDir::homePath()+"/userpkg/pkg/sbin/";
+        workdir = QDir::homePath()+"/pkg/sbin/";
     }
     else {
         workdir = "/usr/pkg/sbin/";
@@ -849,7 +869,7 @@ void PkgSrc::pkgVulnDownloadDone(int status)
         QString workdir;
 
         if (uid>0) {
-            workdir = QDir::homePath()+"/userpkg/pkg/sbin/";
+            workdir = QDir::homePath()+"/pkg/sbin/";
         }
         else {
             workdir = "/usr/pkg/sbin/";
