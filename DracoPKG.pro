@@ -1,5 +1,5 @@
 #
-# DracoPKG - Simple Package management D-Bus service.
+# DracoPKG - Package management service.
 # Copyright (c) 2014 Ole Andre Rodlie <olear@dracolinux.org>. All rights reserved.
 #
 # DracoPKG is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License version 2.

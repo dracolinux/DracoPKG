@@ -1,7 +1,7 @@
 DracoPKG
 ========
 
-Simple Package management D-Bus service.
+Package management service. A simple D-Bus frontend for libDracoPKG.
 
 Requirements
 ============
@@ -25,7 +25,7 @@ Install
  # make install
 
  * Default installation path is /usr/local, you can override this with the PREFIX variable.
- * Default installation path for the D-Bus service and configuration file are /usr/share/dbus-1/system-servies and /etc/dbus-1/system.d, you can override this with the DBUS_SERVICE and DBUS_CONF variables..
+ * Default installation path for the D-Bus service and configuration file are /usr/share/dbus-1/system-services and /etc/dbus-1/system.d, you can override this with the DBUS_SERVICE and DBUS_CONF variables.
  * Default documentation path is PREFIX/share/doc/NAME-VERSION, you can override this with the DOCDIR variable.
  * INSTALL_ROOT is supported during install.
 
