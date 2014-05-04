@@ -29,13 +29,22 @@ isEmpty(INCLUDEDIR) {
     INCLUDEDIR               = $${PREFIX}/include/DracoPKG
 }
 
+isEmpty(DOCDIR) {
+    DOCDIR                   = $$PREFIX/share/doc/$${TEMPLATE}$${TARGET}-$$VERSION
+}
+
+DOCFILES                     = doc/README doc/COPYING.LIB doc/TODO
+target_docs.path             = $$DOCDIR
+target_docs.files            = $$DOCFILES
+
 target.path                  = $${PREFIX}/lib$${LIBSUFFIX}
 target_include.path          = $${INCLUDEDIR}
 target_include.files         = $${HEADERS}
 
-INSTALLS                    += target target_include
+INSTALLS                    += target target_docs target_include
 QMAKE_CLEAN                 += $${DESTDIR}/*
 
-message("libDracoPKG include path: $${INCLUDEDIR}")
-message("libDracoPKG library path: $${target.path}")
-message("libDracoPKG library suffix: $${LIBSUFFIX}")
+message("$${TEMPLATE}$${TARGET}-$$VERSION PREFIX: $$PREFIX")
+message("$${TEMPLATE}$${TARGET}-$$VERSION INCLUDEDIR: $${INCLUDEDIR}")
+message("$${TEMPLATE}$${TARGET}-$$VERSION LIBSUFFIX: $${LIBSUFFIX}")
+message("$${TEMPLATE}$${TARGET}-$$VERSION DOCDIR: $${DOCDIR}")
