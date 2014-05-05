@@ -180,6 +180,8 @@ bool PkgSrc::bootstrapStart()
             textStream << "MAKE_JOBS = 4\n";
             textStream << "SKIP_LICENSE_CHECK = yes\n";
             textStream << "ALLOW_VULNERABLE_PACKAGES = yes\n";
+            textStream << "FAILOVER_FETCH = yes\n";
+            textStream << "FAM_DEFAULT = gamin\n";
             mkIncFile.close();
         }
 
@@ -338,21 +340,10 @@ bool PkgSrc::bmakeActive()
 QString PkgSrc::branchVersion()
 {
     QString branch;
-    QString tagFile = "/CVS/Tag";
-    QString pkgsrcDir;
-    int uid = 0;
-    uid = getuid();
+    QString pkgsrcDir = pkgHome()+"/pkgsrc";
+    QString tagFile = pkgsrcDir+"/CVS/Tag";
 
-    if (uid>0) {
-        //tagFile = QDir::homePath()+"/userpkg/pkgsrc/CVS/Tag";
-        pkgsrcDir = QDir::homePath()+"/pkgsrc";
-    }
-    else {
-        //tagFile = "/usr/pkgsrc/CVS/Tag";
-        pkgsrcDir = "/usr/pkgsrc";
-    }
-
-    QFile pkgsrcTagFile(pkgsrcDir+tagFile);
+    QFile pkgsrcTagFile(tagFile);
     if (pkgsrcTagFile.exists()) {
         if (pkgsrcTagFile.open(QIODevice::ReadOnly)) {
             QTextStream textStream(&pkgsrcTagFile);
@@ -376,27 +367,12 @@ bool PkgSrc::packageOptionsRequest(QString pkg, QString cat)
     if (!pkg.isEmpty()&&!cat.isEmpty()) {
         QStringList args;
         args << "show-options";
-        int uid = 0;
-        uid = getuid();
-        QString bmake_exec;
-        QString workdir;
+        QString bmake_exec = bmakeExec();
+        QString workdir = pkgHome()+"/pkgsrc/"+cat+"/"+pkg;
 
-        if (uid>0) {
-            workdir = QDir::homePath()+"/pkgsrc/"+cat+"/"+pkg;
-            bmake_exec = QDir::homePath()+"/pkg/bin/bmake";
-        }
-        else {
-            workdir = "/usr/pkgsrc/"+cat+"/"+pkg;
-            /*QFile native_bmake("/usr/bin/bmake");
-            if (native_bmake.exists()) {
-                bmake_exec = "/usr/bin/bmake";
-            }
-            else {*/
-                bmake_exec = "/usr/pkg/bin/bmake";
-            //}
-        }
-
-        if (!bmake_exec.isEmpty()&&!workdir.isEmpty()) {
+        QFile bmake(bmake_exec);
+        QDir pkgsrc(workdir);
+        if (bmake.exists(bmake_exec)&&pkgsrc.exists(workdir)) {
             pkgBuildOptions->setWorkingDirectory(workdir);
             pkgBuildOptions->start(bmake_exec,args);
             status = true;
@@ -476,27 +452,12 @@ bool PkgSrc::packageDependsRequest(QString pkg, QString cat)
     if (!pkg.isEmpty()&&!cat.isEmpty()) {
         QStringList args;
         args << "show-depends";
-        int uid = 0;
-        uid = getuid();
-        QString bmake_exec;
-        QString workdir;
+        QString bmake_exec = bmakeExec();
+        QString workdir = pkgHome()+"/pkgsrc/"+cat+"/"+pkg;;
 
-        if (uid>0) {
-            workdir = QDir::homePath()+"/pkgsrc/"+cat+"/"+pkg;
-            bmake_exec = QDir::homePath()+"/pkg/bin/bmake";
-        }
-        else {
-            workdir = "/usr/pkgsrc/"+cat+"/"+pkg;
-            /*QFile native_bmake("/usr/bin/bmake");
-            if (native_bmake.exists()) {
-                bmake_exec = "/usr/bin/bmake";
-            }
-            else {*/
-                bmake_exec = "/usr/pkg/bin/bmake";
-            //}
-        }
-
-        if (!bmake_exec.isEmpty()&&!workdir.isEmpty()) {
+        QFile bmake(bmake_exec);
+        QDir pkgsrc(workdir);
+        if (bmake.exists(bmake_exec)&&pkgsrc.exists(workdir)) {
             pkgDepends->setWorkingDirectory(workdir);
             pkgDepends->start(bmake_exec,args);
             status = true;
@@ -526,16 +487,7 @@ void PkgSrc::pkgDependsDone(int status)
 QStringList PkgSrc::categoryList()
 {
     QStringList output;
-    int uid = 0;
-    uid = getuid();
-    QString workdir;
-
-    if (uid>0) {
-        workdir = QDir::homePath()+"/pkgsrc/";
-    }
-    else {
-        workdir = "/usr/pkgsrc/";
-    }
+    QString workdir = pkgHome()+"/pkgsrc";
 
     QDir pkgsrc(workdir);
     QFileInfoList pkgsrcList(pkgsrc.entryInfoList(QDir::NoDotAndDotDot|QDir::AllDirs));
@@ -557,28 +509,17 @@ QStringList PkgSrc::categoryList()
 QStringList PkgSrc::packageList(QString cat, QString search)
 {
     QStringList output;
-    int uid = 0;
-    uid = getuid();
-    QString workdir;
-    QString searchdir;
-
-    if (uid>0) {
-        workdir = QDir::homePath()+"/pkgsrc/";
-        searchdir = workdir;
-    }
-    else {
-        workdir = "/usr/pkgsrc/";
-        searchdir = workdir;
-    }
+    QString workdir = pkgHome()+"/pkgsrc";
+    QString searchdir = workdir;
 
     if (!cat.isEmpty()) {
-        workdir = workdir+cat;
+        workdir = workdir+"/"+cat;
     }
 
     if (!search.isEmpty()) {
         QStringList categories = categoryList();
         for (int i = 0; i < categories.size(); ++i) {
-            QDir pkgsrc(searchdir+categories.at(i));
+            QDir pkgsrc(searchdir+"/"+categories.at(i));
             QFileInfoList pkgsrcList(pkgsrc.entryInfoList(QDir::NoDotAndDotDot|QDir::AllDirs));
             foreach (QFileInfo folder, pkgsrcList) {
                 if (folder.isDir()) {
@@ -613,39 +554,18 @@ QStringList PkgSrc::packageList(QString cat, QString search)
 
 void PkgSrc::packageCleanRequest()
 {
-    int uid = 0;
-    uid = getuid();
-    QString workdir;
-
-    if (uid>0) {
-        workdir = QDir::homePath()+"/pkg/bin/";
-    }
-    else {
-        workdir = "/usr/pkg/bin/";
-    }
-
-    pkgClean->start(workdir+"pkgclean");
+    pkgClean->start(pkgHome()+"/pkg/bin/pkgclean");
 }
 
 void PkgSrc::pkgCleanDone(int status)
 {
+    pkgClean->close();
     emit packageCleanFinished(status);
 }
 
 void PkgSrc::packagesInstalledRequest()
 {
-    int uid = 0;
-    uid = getuid();
-    QString workdir;
-
-    if (uid>0) {
-        workdir = QDir::homePath()+"/pkg/sbin/";
-    }
-    else {
-        workdir = "/usr/pkg/sbin/";
-    }
-
-    pkgInstalled->start(workdir+"pkg_info");
+    pkgInstalled->start(pkgHome()+"/pkg/sbin/pkg_info");
 }
 
 void PkgSrc::pkgInstalledDone(int status)
@@ -683,27 +603,12 @@ bool PkgSrc::packageVersionRequest(QString pkg, QString cat)
     if (!pkg.isEmpty()&&!cat.isEmpty()) {
         QStringList args;
         args << "show-var";
-        int uid = 0;
-        uid = getuid();
-        QString bmake_exec;
-        QString workdir;
+        QString bmake_exec = bmakeExec();
+        QString workdir = pkgHome()+"/pkgsrc/"+cat+"/"+pkg;
 
-        if (uid>0) {
-            workdir = QDir::homePath()+"/pkgsrc/"+cat+"/"+pkg;
-            bmake_exec = QDir::homePath()+"/pkg/bin/bmake";
-        }
-        else {
-            workdir = "/usr/pkgsrc/"+cat+"/"+pkg;
-            /*QFile native_bmake("/usr/bin/bmake");
-            if (native_bmake.exists()) {
-                bmake_exec = "/usr/bin/bmake";
-            }
-            else {*/
-                bmake_exec = "/usr/pkg/bin/bmake";
-            //}
-        }
-
-        if (!bmake_exec.isEmpty()&&!workdir.isEmpty()) {
+        QFile bmake(bmake_exec);
+        QDir pkgsrc(workdir);
+        if (bmake.exists(bmake_exec)&&pkgsrc.exists(workdir)) {
             QProcessEnvironment buildEnv = QProcessEnvironment::systemEnvironment();
             buildEnv.insert("VARNAME","PKGVERSION");
             pkgVersion->setProcessEnvironment(buildEnv);
@@ -734,27 +639,12 @@ bool PkgSrc::packageNameRequest(QString pkg, QString cat)
     if (!pkg.isEmpty()&&!cat.isEmpty()) {
         QStringList args;
         args << "show-var";
-        int uid = 0;
-        uid = getuid();
-        QString bmake_exec;
-        QString workdir;
+        QString bmake_exec = bmakeExec();
+        QString workdir = pkgHome()+"/pkgsrc/"+cat+"/"+pkg;
 
-        if (uid>0) {
-            workdir = QDir::homePath()+"/pkgsrc/"+cat+"/"+pkg;
-            bmake_exec = QDir::homePath()+"/pkg/bin/bmake";
-        }
-        else {
-            workdir = "/usr/pkgsrc/"+cat+"/"+pkg;
-            /*QFile native_bmake("/usr/bin/bmake");
-            if (native_bmake.exists()) {
-                bmake_exec = "/usr/bin/bmake";
-            }
-            else {*/
-                bmake_exec = "/usr/pkg/bin/bmake";
-            //}
-        }
-
-        if (!bmake_exec.isEmpty()&&!workdir.isEmpty()) {
+        QFile bmake(bmake_exec);
+        QDir pkgsrc(workdir);
+        if (bmake.exists(bmake_exec)&&pkgsrc.exists(workdir)) {
             QProcessEnvironment buildEnv = QProcessEnvironment::systemEnvironment();
             buildEnv.insert("VARNAME","PKGBASE");
             pkgName->setProcessEnvironment(buildEnv);
@@ -781,39 +671,17 @@ void PkgSrc::pkgNameDone(int status)
 
 void PkgSrc::packagesVulnsRequest()
 {
-    int uid = 0;
-    uid = getuid();
-    QString workdir;
-
-    if (uid>0) {
-        workdir = QDir::homePath()+"/pkg/sbin/";
-    }
-    else {
-        workdir = "/usr/pkg/sbin/";
-    }
-
     QStringList args;
     args<<"fetch-pkg-vulnerabilities";
-    pkgVulnDownload->start(workdir+"pkg_admin",args);
+    pkgVulnDownload->start(pkgHome()+"/pkg/sbin/pkg_admin",args);
 }
 
 void PkgSrc::pkgVulnDownloadDone(int status)
 {
     if (status==0) {
-        int uid = 0;
-        uid = getuid();
-        QString workdir;
-
-        if (uid>0) {
-            workdir = QDir::homePath()+"/pkg/sbin/";
-        }
-        else {
-            workdir = "/usr/pkg/sbin/";
-        }
-
         QStringList args;
         args<<"audit";
-        pkgVulnCheck->start(workdir+"pkg_admin",args);
+        pkgVulnCheck->start(pkgHome()+"/pkg/sbin/pkg_admin",args);
     }
 }
 
