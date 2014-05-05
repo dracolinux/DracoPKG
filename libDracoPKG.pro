@@ -6,23 +6,30 @@
 # libDracoPKG is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License version 2.1.
 #
 
-TARGET                           = DracoPKG
+CONFIG(pkgsrc) {
+    TARGET                       = PkgSrc
+    DEFINES                     += PKGSRC_LIBRARY
+    HEADERS                     += src/PkgSrc_global.h src/pkgsrc.h
+    SOURCES                     += src/pkgsrc.cpp
+}
+
+!CONFIG(pkgsrc) {
+    TARGET                       = DracoPKG
+    DEFINES                     += DRACOPKG_LIBRARY
+    HEADERS                     += src/DracoPKG_global.h src/dracopkg.h
+    SOURCES                     += src/dracopkg.cpp
+    HEADERS                     += src/pkgsrc.h
+    SOURCES                     += src/pkgsrc.cpp
+    HEADERS                     += src/pkgyum.h
+    SOURCES                     += src/pkgyum.cpp
+}
+
 VERSION                          = 1.0.0
 TEMPLATE                         = lib
-DEFINES                         += DRACOPKG_LIBRARY
 QT                              -= gui
 QT                              += network
 CONFIG                          += release
 CONFIG                          -= debug
-
-HEADERS                         += src/DracoPKG_global.h src/dracopkg.h
-SOURCES                         += src/dracopkg.cpp
-
-HEADERS                         += src/pkgsrc.h
-SOURCES                         += src/pkgsrc.cpp
-
-HEADERS                         += src/pkgyum.h
-SOURCES                         += src/pkgyum.cpp
 
 DESTDIR                          = build
 OBJECTS_DIR                      = $${DESTDIR}/.obj
