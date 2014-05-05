@@ -60,6 +60,9 @@ QMAKE_CLEAN                     += $${DESTDIR}/*
     QMAKE_POST_LINK             += strip -s $${DESTDIR}/$${TEMPLATE}$${TARGET}.so.$${VERSION}
 }
 
+INCLUDEPATH                     += "$${PREFIX}/include"
+LIBS                            += -L"$${PREFIX}/lib"
+
 message("PREFIX: $$PREFIX")
 message("INCLUDEDIR: $${INCLUDEDIR}")
 message("LIBSUFFIX: $${LIBSUFFIX}")
