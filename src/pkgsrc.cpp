@@ -721,7 +721,7 @@ QString PkgSrc::pkgHome()
 QString PkgSrc::bmakeExec()
 {
     QString bmake_exec = pkgHome()+"/pkg/bin/bmake";
-    int uid = 0;
+    int uid = -1;
     uid = getuid();
 
     if (uid==0) {
