@@ -33,13 +33,13 @@ Notes
 
 libDracoPKG is modular and you can build only parts of the library. Currently we support building the pkgsrc features as a standalone library called libPkgSrc.
 
- # qmake CONFIG+=pkgsrc
+# qmake CONFIG+=libpkgsrc
 
 
 Usage
 =====
 
-See DracoPKG, UserPKG and other clients that uses this library.
+See DracoPKG, UserPKG and other applications that uses this library.
 
 Status
 ======

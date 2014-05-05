@@ -6,14 +6,14 @@
 # libDracoPKG is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License version 2.1.
 #
 
-CONFIG(pkgsrc) {
+CONFIG(libpkgsrc) {
     TARGET                       = PkgSrc
     DEFINES                     += PKGSRC_LIBRARY
     HEADERS                     += src/PkgSrc_global.h src/pkgsrc.h
     SOURCES                     += src/pkgsrc.cpp
 }
 
-!CONFIG(pkgsrc) {
+!CONFIG(libpkgsrc) {
     TARGET                       = DracoPKG
     DEFINES                     += DRACOPKG_LIBRARY
     HEADERS                     += src/DracoPKG_global.h src/dracopkg.h
