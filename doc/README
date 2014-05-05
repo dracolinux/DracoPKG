@@ -1,7 +1,7 @@
 DracoPKG
 ========
 
-Package management service. A simple D-Bus frontend for libDracoPKG.
+Package management service. A simple D-Bus front-end for libDracoPKG.
 
 Requirements
 ============
@@ -10,7 +10,7 @@ Requirements
  * libQtNetwork
  * libQtDBus
  * libQtXml
- * libDracoPKG
+ * libDracoPKG/libPkgSrc
 
 Build
 =====
@@ -24,15 +24,22 @@ Install
 # qmake
 # make install
 
+Notes
+=====
+
  * Default installation path is /usr/local, you can override this with the PREFIX variable.
  * Default installation path for the D-Bus service and configuration file are /usr/share/dbus-1/system-services and /etc/dbus-1/system.d, you can override this with the DBUS_SERVICE and DBUS_CONF variables.
- * Default documentation path is PREFIX/share/doc/NAME-VERSION, you can override this with the DOCDIR variable.
+ * Default documentation path is PREFIX/share/doc, you can override this with the DOCDIR variable.
  * INSTALL_ROOT is supported during install.
+ * Default group access to the service is "wheel", you can override this with the ADMIN_GROUP variable.
+ * DracoPKG supports modular libDracoPKG, currently you can build against pkgsrc-only if wanted. DracoPKG will then be renamed to PkgSrc.
+
+# qmake CONFIG+=libpkgsrc
 
 Usage
 =====
 
-DracoPKG will be started by D-Bus on-demand. Any D-Bus client will work, note that the default settings only allows members of the group "wheel" to use the service.
+DracoPKG will be started by D-Bus on-demand.
 
 Links
 =====
