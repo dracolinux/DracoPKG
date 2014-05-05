@@ -5,9 +5,16 @@
 # DracoPKG is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License version 2.
 #
 
+CONFIG(libpkgsrc) {
+    TARGET                           = PkgSrc
+}
+
+!CONFIG(libpkgsrc) {
+    TARGET                           = DracoPKG
+}
+
 QT                                  += core dbus network xml
 QT                                  -= gui
-TARGET                               = DracoPKG
 VERSION                              = 1.0.0
 CONFIG                              += console
 CONFIG                              -= app_bundle
@@ -16,8 +23,6 @@ SOURCES                             += src/$${TARGET}.cpp
 
 DESTDIR                              = build
 OBJECTS_DIR                          = $${DESTDIR}/.obj
-
-
 
 isEmpty(PREFIX) {
     PREFIX                           = /usr/local

@@ -36,6 +36,11 @@ Notes
  * Default documentation path is PREFIX/share/doc/NAME-VERSION, you can override this with the DOCDIR variable.
  * INSTALL_ROOT is supported during install.
  * Default group access to the service is "wheel", you can override this with the ADMIN_GROUP variable.
+ * DracoPKG supports modular libDracoPKG, currently you can build against pkgsrc only if wanted:
+
+```
+# qmake CONFIG+=libpkgsrc
+```
 
 Usage
 =====
