@@ -321,7 +321,9 @@ bool PkgSrc::bmakeStop()
     bool status = false;
     if (pkgsrcBmake->isOpen()) {
         pkgsrcBmake->close();
-        status = true;
+        if (!pkgsrcBmake->isOpen()) {
+            status = true;
+        }
     }
 
     return status;
