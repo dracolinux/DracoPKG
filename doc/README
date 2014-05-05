@@ -12,18 +12,14 @@ Requirements
 Build
 =====
 
-```
 # qmake
 # make
-```
 
 Install
 =======
 
-```
 # qmake
 # make install
-```
 
 Notes
 =====
@@ -37,9 +33,8 @@ Notes
 
 libDracoPKG is modular and you can build only parts of the library. Currently we support building the pkgsrc features as a standalone library called libPkgSrc.
 
-```
 # qmake CONFIG+=libpkgsrc
-```
+
 
 Usage
 =====
