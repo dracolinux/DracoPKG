@@ -12,7 +12,7 @@ CONFIG(libpkgsrc) {
 
 !CONFIG(libpkgsrc) {
     TARGET                           = DracoPKG
-    OTHER_FILES                     += src/PkgSrc
+    OTHER_FILES                     += src/PkgSrc.cpp
 }
 
 QT                                  += core dbus network xml
