@@ -33,6 +33,7 @@ signals:
     void extractStatus(QString data);
     void extractFinished(int status);
     // Bootstrap pkgsrc
+    void bootstrapStarted();
     void bootstrapStatus(QString data);
     void bootstrapFinished(int status);
     // pkgsrc bmake
@@ -98,6 +99,7 @@ private slots:
     // Bootstrap pkgsrc
     void bootstrapProgress();
     void bootstrapDone(int status);
+    void bootstrapStartEmit();
     // pkgsrc bmake
     void bmakeProgress();
     void bmakeDone(int status);
@@ -117,6 +119,10 @@ private slots:
     void pkgVulnDownloadDone(int status);
     // packacges vulns check
     void pkgVulnCheckDone(int status);
+    // pkg home
+    QString pkgHome();
+    // bmake exec
+    QString bmakeExec();
 
 private:
     // Download pkgsrc
