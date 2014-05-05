@@ -12,14 +12,18 @@ Requirements
 Build
 =====
 
+```
 # qmake
 # make
+```
 
 Install
 =======
 
+```
 # qmake
 # make install
+```
 
 Notes
 =====
@@ -31,15 +35,21 @@ Notes
  * INSTALL_ROOT is supported during install.
  * You can build a static library with the variable CONFIG+=staticlib.
 
+libDracoPKG is modular and you can build only parts of the library. Currently we support building the pkgsrc features as a standalone library called libPkgSrc.
+
+```
+# qmake CONFIG+=libpkgsrc
+```
+
 Usage
 =====
 
-See DracoPKG, UserPKG and other clients that uses this library.
+See DracoPKG, UserPKG and other applications that uses this library.
 
 Status
 ======
 
-Usable, but under development. A lot of hardcoded stuff that needs to be removed etc.
+Usable, but under development.
 
 Links
 =====
