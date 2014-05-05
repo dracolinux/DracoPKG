@@ -65,7 +65,7 @@ QMAKE_CLEAN                         += $${DESTDIR}/*
 QMAKE_POST_LINK                     += $$quote(strip -s $${DESTDIR}/$${TARGET}$$escape_expand(\\n\\t))
 
 INCLUDEPATH                         += "$${PREFIX}/include"
-LIBS                                += -L"$${PREFIX}/lib"
+LIBS                                += -L"$${PREFIX}/lib$${LIBSUFFIX}"
 LIBS                                += "-l$${TARGET}"
 
 OTHER_FILES                         += res/org.dracolinux.conf
@@ -73,4 +73,5 @@ OTHER_FILES                         += res/org.dracolinux.conf
 message("PREFIX: $$PREFIX")
 message("DBUS_CONF: $${DBUS_CONF}")
 message("DBUS_SERVICE: $${DBUS_SERVICE}")
+message("LIBSUFFIX: $${LIBSUFFIX}")
 message("DOCDIR: $${DOCDIR}")
