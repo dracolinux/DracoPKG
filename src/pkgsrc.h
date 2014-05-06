@@ -53,14 +53,17 @@ signals:
     void packageNameResult(QString name);
     // packages vulns
     void packagesVulnsResult(QStringList result);
+    // package remove
+    void packageRemoveResult(int status);
+    void packageRemoveStatus(QString data);
+    // init pkgsrc done
+    void pkgsrcReady();
+    // update pkgsrc
+    void pkgsrcUpdateStatus(QString data);
+    void pkgsrcUpdateFinished(int status);
     
 public slots:
-    // Download pkgsrc
-    bool downloadStart();
-    // Extract pkgsrc
-    bool extractStart();
-    // Bootsrap pkgsrc
-    bool bootstrapStart();
+    // Bootstrap pkgsrc
     bool bootstrapClean();
     bool bootstrapActive();
     // pkgsrc bmake
@@ -85,10 +88,22 @@ public slots:
     bool packageVersionRequest(QString pkg, QString cat);
     // package name
     bool packageNameRequest(QString pkg, QString cat);
-    // packacges vulns
+    // packages vulns
     void packagesVulnsRequest();
+    // package remove
+    bool packageRemove(QString pkg, int recursive);
+    // init pkgsrc
+    void initPkgsrc();
+    // update pkgsrc
+    void updatePkgsrc();
 
 private slots:
+    // Download pkgsrc
+    bool downloadStart();
+    // Extract pkgsrc
+    bool extractStart();
+    // Bootstrap pkgsrc
+    bool bootstrapStart();
     bool dirClean(QString dirName);
     // Download pkgsrc
     void downloadProgress(qint64 start, qint64 end);
@@ -117,12 +132,20 @@ private slots:
     void pkgNameDone(int status);
     // packages fetch vulns list
     void pkgVulnDownloadDone(int status);
-    // packacges vulns check
+    // packages vulns check
     void pkgVulnCheckDone(int status);
     // pkg home
     QString pkgHome();
     // bmake exec
     QString bmakeExec();
+    // package remove
+    void pkgRemoveDone(int status);
+    void pkgRemoveProgress();
+    // init pkgsrc
+    void initPkgsrcBootstrap(int status);
+    // update pkgsrc
+    void pkgsrcSyncDone(int status);
+    void pkgsrcSyncProgress();
 
 private:
     // Download pkgsrc
@@ -149,8 +172,12 @@ private:
     QProcess *pkgName;
     // packages fetch vulns list
     QProcess *pkgVulnDownload;
-    // packacges vulns check
+    // packages vulns check
     QProcess *pkgVulnCheck;
+    // package remove
+    QProcess *pkgRemove;
+    // pkgsrc sync
+    QProcess *pkgsrcSync;
 };
 
 #endif // PKGSRC_H

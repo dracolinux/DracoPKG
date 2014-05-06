@@ -61,7 +61,7 @@ QMAKE_CLEAN                     += $${DESTDIR}/*
 }
 
 INCLUDEPATH                     += "$${PREFIX}/include"
-LIBS                            += -L"$${PREFIX}/lib"
+LIBS                            += -L"$${PREFIX}/lib$${LIBSUFFIX}"
 
 message("PREFIX: $$PREFIX")
 message("INCLUDEDIR: $${INCLUDEDIR}")

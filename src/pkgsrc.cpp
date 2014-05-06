@@ -62,6 +62,16 @@ PkgSrc::PkgSrc(QObject *parent) :
     pkgVulnCheck = new QProcess(this);
     pkgVulnCheck->setProcessChannelMode(QProcess::MergedChannels);
     connect(pkgVulnCheck,SIGNAL(finished(int)),this,SLOT(pkgVulnCheckDone(int)));
+
+    pkgRemove = new QProcess(this);
+    pkgRemove->setProcessChannelMode(QProcess::MergedChannels);
+    connect(pkgRemove,SIGNAL(finished(int)),this,SLOT(pkgRemoveDone(int)));
+    connect(pkgRemove,SIGNAL(readyRead()),this,SLOT(pkgRemoveProgress()));
+
+    pkgsrcSync = new QProcess(this);
+    pkgsrcSync->setProcessChannelMode(QProcess::MergedChannels);
+    connect(pkgsrcSync,SIGNAL(finished(int)),this,SLOT(pkgsrcSyncDone(int)));
+    connect(pkgsrcSync,SIGNAL(readyRead()),this,SLOT(pkgsrcSyncProgress()));
 }
 
 bool PkgSrc::downloadStart()
@@ -133,14 +143,17 @@ void PkgSrc::downloadProgress(qint64 start, qint64 end)
 bool PkgSrc::extractStart()
 {
     bool status = false;
-    QString pkgsrc_dir = pkgHome()+"/pkgsrc";
-    QString pkgsrc_file = pkgHome()+"/tmp/pkgsrc.tar.xz";
-    QFile pkgsrcFile(pkgsrc_file);
-    QDir pkgsrc;
+    QStringList pkgsrc = categoryList();
+    QString pkgsrc_tarball = pkgHome()+"/tmp/pkgsrc.tar.xz";
+    QFile pkgsrcTar(pkgsrc_tarball);
 
-    if (!pkgsrc.exists(pkgsrc_dir) && pkgsrcFile.exists(pkgsrc_file) && !pkgsrcBootstrap->isOpen() && !pkgsrcBmake->isOpen()) {
+    if (!pkgsrc.isEmpty()) {
+        dirClean(pkgHome()+"/pkgsrc");
+    }
+
+    if (pkgsrcTar.exists(pkgsrc_tarball) && !pkgsrcBootstrap->isOpen() && !pkgsrcBmake->isOpen()) {
         QStringList args;
-        args << "xvf" << pkgsrc_file << "-C" << pkgHome();
+        args << "xvf" << pkgsrc_tarball << "-C" << pkgHome();
         pkgsrcExtract->start("tar",args);
         status = true;
     }
@@ -167,7 +180,7 @@ bool PkgSrc::bootstrapStart()
 
     QFile bmake(bmake_exec);
     QDir bootstrap_dir(workdir);
-    if (!bmake.exists()&&bootstrap_dir.exists(workdir)&&!pkgsrcBootstrap->isOpen()&&!pkgsrcBmake->isOpen()) {
+    if (!bmake.exists()&&bootstrap_dir.exists(workdir)&&!pkgsrcBootstrap->isOpen()&&!pkgsrcBmake->isOpen()&&!pkgsrcSync->isOpen()) {
         QStringList args;
         QString mkIncFileName = "mk-fragment.conf";
         QFile mkIncFile(workdir+"/"+mkIncFileName);
@@ -279,9 +292,12 @@ bool PkgSrc::dirClean(QString dirName)
 bool PkgSrc::bmakeStart(QString pkg, QString cat, QString options, QString action)
 {
     bool status=false;
-    if (!pkg.isEmpty()&&!cat.isEmpty()&&!action.isEmpty()&&!pkgsrcBmake->isOpen()&&!pkgsrcBootstrap->isOpen()) {
+    if (!pkg.isEmpty()&&!cat.isEmpty()&&!action.isEmpty()&&!pkgsrcBmake->isOpen()&&!pkgsrcBootstrap->isOpen()&&!pkgsrcSync->isOpen()) {
         QStringList args;
         args << action;
+        if (action == "install") {
+            args << "clean" << "clean-depends";
+        }
         int uid = 0;
         uid = getuid();
         QString bmake_exec = bmakeExec();
@@ -355,7 +371,8 @@ QString PkgSrc::branchVersion()
     }
     else {
         QDir pkgsrCurrent;
-        if (pkgsrCurrent.exists(pkgsrcDir)) {
+        QFile pkgsrcMakefile;
+        if (pkgsrCurrent.exists(pkgsrcDir)&&pkgsrcMakefile.exists(pkgsrcDir+"/Makefile")) {
             branch= "current";
         }
     }
@@ -734,4 +751,103 @@ QString PkgSrc::bmakeExec()
     }
 
     return bmake_exec;
+}
+
+void PkgSrc::pkgRemoveDone(int status)
+{
+    emit packageRemoveResult(status);
+}
+
+void PkgSrc::pkgRemoveProgress()
+{
+    emit packageRemoveStatus(pkgRemove->readAll());
+}
+
+bool PkgSrc::packageRemove(QString pkg, int recursive)
+{
+    bool status = false;
+    if (!pkg.isEmpty()) {
+        status = true;
+        QStringList args;
+        args << "-v";
+        if (recursive==1) {
+            args << "-A";
+        }
+        args << pkg;
+        pkgRemove->start(pkgHome()+"/pkg/sbin/pkg_delete",args);
+    }
+    return status;
+}
+
+void PkgSrc::initPkgsrc()
+{
+    connect(this,SIGNAL(extractFinished(int)),this,SLOT(initPkgsrcBootstrap(int)));
+    connect(this,SIGNAL(downloadFinished(int)),this,SLOT(extractStart()));
+
+    QString pkgsrcBranch = branchVersion();
+    if (pkgsrcBranch.isEmpty()) {
+        QFile pkgsrcTar(pkgHome()+"/tmp/pkgsrc.tar.xz");
+        if (pkgsrcTar.exists()) {
+            extractStart();
+        }
+        else {
+            downloadStart();
+        }
+    }
+    else {
+        initPkgsrcBootstrap(0);
+    }
+}
+
+void PkgSrc::initPkgsrcBootstrap(int status)
+{
+    if (status == 0) {
+        QFile bmake(bmakeExec());
+        if (!bmake.exists(bmakeExec())) {
+            bootstrapStart();
+        }
+        else {
+            emit pkgsrcReady();
+        }
+    }
+}
+
+void PkgSrc::pkgsrcSyncDone(int status)
+{
+    pkgsrcSync->close();
+    QFile askpass(pkgHome()+"/tmp/pkgsrc_accept_key.sh");
+    if (askpass.exists()) {
+        askpass.remove();
+    }
+    emit pkgsrcUpdateFinished(status);
+}
+
+void PkgSrc::pkgsrcSyncProgress()
+{
+    emit pkgsrcUpdateStatus(pkgsrcSync->readAll());
+}
+
+void PkgSrc::updatePkgsrc()
+{ // TODO! check for cvs, build if req, ssh is also req, check for that as well
+    if (!pkgsrcBmake->isOpen()&&!pkgsrcBootstrap->isOpen()) {
+        QFile askpass(pkgHome()+"/tmp/pkgsrc_accept_key.sh");
+        if (askpass.open(QIODevice::WriteOnly)) {
+            QTextStream textStream(&askpass);
+            textStream << "#!/bin/sh\n";
+            textStream << "echo yes\n";
+            askpass.close();
+        }
+
+        if (askpass.exists()) {
+            QStringList args;
+            args << "update" << "-dP";
+            QProcessEnvironment cvsEnv = QProcessEnvironment::systemEnvironment();
+            askpass.setPermissions(QFile::ExeOwner|QFile::ReadOwner|QFile::WriteOwner);
+            cvsEnv.insert("CVS_RSH","ssh");
+            cvsEnv.insert("SSH_ASKPASS",askpass.fileName());
+            pkgsrcSync->setProcessEnvironment(cvsEnv);
+            pkgsrcSync->setWorkingDirectory(pkgHome()+"/pkgsrc");
+            pkgsrcSync->start("cvs", args);
+        }
+    }
 }
