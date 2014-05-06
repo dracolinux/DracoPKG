@@ -62,6 +62,11 @@ PkgSrc::PkgSrc(QObject *parent) :
     pkgVulnCheck = new QProcess(this);
     pkgVulnCheck->setProcessChannelMode(QProcess::MergedChannels);
     connect(pkgVulnCheck,SIGNAL(finished(int)),this,SLOT(pkgVulnCheckDone(int)));
+
+    pkgRemove = new QProcess(this);
+    pkgRemove->setProcessChannelMode(QProcess::MergedChannels);
+    connect(pkgRemove,SIGNAL(finished(int)),this,SLOT(pkgRemoveDone(int)));
+    connect(pkgRemove,SIGNAL(readyRead()),this,SLOT(pkgRemoveProgress()));
 }
 
 bool PkgSrc::downloadStart()
@@ -734,4 +739,30 @@ QString PkgSrc::bmakeExec()
     }
 
     return bmake_exec;
+}
+
+void PkgSrc::pkgRemoveDone(int status)
+{
+    emit packageRemoveResult(status);
+}
+
+void PkgSrc::pkgRemoveProgress()
+{
+    emit packageRemoveStatus(pkgRemove->readAll());
+}
+
+bool PkgSrc::packageRemove(QString pkg, int recursive)
+{
+    bool status = false;
+    if (!pkg.isEmpty()) {
+        status = true;
+        QStringList args;
+        args << "-v";
+        if (recursive==1) {
+            args << "-A";
+        }
+        args << pkg;
+        pkgRemove->start(pkgHome()+"/pkg/sbin/pkg_delete",args);
+    }
+    return status;
 }
