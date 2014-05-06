@@ -138,14 +138,17 @@ void PkgSrc::downloadProgress(qint64 start, qint64 end)
 bool PkgSrc::extractStart()
 {
     bool status = false;
-    QString pkgsrc_dir = pkgHome()+"/pkgsrc";
-    QString pkgsrc_file = pkgHome()+"/tmp/pkgsrc.tar.xz";
-    QFile pkgsrcFile(pkgsrc_file);
-    QDir pkgsrc;
+    QStringList pkgsrc = categoryList();
+    QString pkgsrc_tarball = pkgHome()+"/tmp/pkgsrc.tar.xz";
+    QFile pkgsrcTar(pkgsrc_tarball);
 
-    if (!pkgsrc.exists(pkgsrc_dir) && pkgsrcFile.exists(pkgsrc_file) && !pkgsrcBootstrap->isOpen() && !pkgsrcBmake->isOpen()) {
+    if (!pkgsrc.isEmpty()) {
+        dirClean(pkgHome()+"/pkgsrc");
+    }
+
+    if (pkgsrcTar.exists(pkgsrc_tarball) && !pkgsrcBootstrap->isOpen() && !pkgsrcBmake->isOpen()) {
         QStringList args;
-        args << "xvf" << pkgsrc_file << "-C" << pkgHome();
+        args << "xvf" << pkgsrc_tarball << "-C" << pkgHome();
         pkgsrcExtract->start("tar",args);
         status = true;
     }
@@ -161,7 +164,9 @@ void PkgSrc::extractDone(int status)
 
 void PkgSrc::extractProgress()
 {
-    emit extractStatus(pkgsrcExtract->readAll());
+    QString line = pkgsrcExtract->readAll();
+    qDebug() << line;
+    emit extractStatus(line);
 }
 
 bool PkgSrc::bootstrapStart()
@@ -360,7 +365,8 @@ QString PkgSrc::branchVersion()
     }
     else {
         QDir pkgsrCurrent;
-        if (pkgsrCurrent.exists(pkgsrcDir)) {
+        QFile pkgsrcMakefile;
+        if (pkgsrCurrent.exists(pkgsrcDir)&&pkgsrcMakefile.exists(pkgsrcDir+"/Makefile")) {
             branch= "current";
         }
     }
@@ -765,4 +771,44 @@ bool PkgSrc::packageRemove(QString pkg, int recursive)
         pkgRemove->start(pkgHome()+"/pkg/sbin/pkg_delete",args);
     }
     return status;
+}
+
+void PkgSrc::initPkgsrc()
+{
+    connect(this,SIGNAL(extractFinished(int)),this,SLOT(initPkgsrcBootstrap(int)));
+    connect(this,SIGNAL(downloadFinished(int)),this,SLOT(extractStart()));
+
+    QString pkgsrcBranch = branchVersion();
+        if (pkgsrcBranch.isEmpty()) {
+            qDebug() << "branch is empty";
+            QFile pkgsrcTar(pkgHome()+"/tmp/pkgsrc.tar.xz");
+            if (pkgsrcTar.exists()) {
+                qDebug() << "extract";
+                qDebug() << extractStart();
+            }
+            else {
+                qDebug() << "download";
+                downloadStart();
+            }
+        }
+        else {
+            qDebug() << "initboot";
+            initPkgsrcBootstrap(0);
+        }
+}
+
+void PkgSrc::initPkgsrcBootstrap(int status)
+{
+    qDebug() << status;
+    if (status == 0) {
+        QString bmake = bmakeExec();
+        if (bmake.isEmpty()) {
+            qDebug() << "no bmake";
+            bootstrapStart();
+        }
+        else {
+            qDebug() << "ready for action";
+            emit pkgsrcReady();
+        }
+    }
 }
