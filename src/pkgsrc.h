@@ -56,6 +56,8 @@ signals:
     // package remove
     void packageRemoveResult(int status);
     void packageRemoveStatus(QString data);
+    // init pkgsrc done
+    void pkgsrcReady();
     
 public slots:
     // Download pkgsrc
@@ -92,6 +94,8 @@ public slots:
     void packagesVulnsRequest();
     // package remove
     bool packageRemove(QString pkg, int recursive);
+    // init pkgsrc
+    void initPkgsrc();
 
 private slots:
     bool dirClean(QString dirName);
@@ -131,6 +135,8 @@ private slots:
     // package remove
     void pkgRemoveDone(int status);
     void pkgRemoveProgress();
+    // init pkgsrc
+    void initPkgsrcBootstrap(int status);
 
 private:
     // Download pkgsrc
