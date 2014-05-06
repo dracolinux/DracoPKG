@@ -67,6 +67,11 @@ PkgSrc::PkgSrc(QObject *parent) :
     pkgRemove->setProcessChannelMode(QProcess::MergedChannels);
     connect(pkgRemove,SIGNAL(finished(int)),this,SLOT(pkgRemoveDone(int)));
     connect(pkgRemove,SIGNAL(readyRead()),this,SLOT(pkgRemoveProgress()));
+
+    pkgsrcSync = new QProcess(this);
+    pkgsrcSync->setProcessChannelMode(QProcess::MergedChannels);
+    connect(pkgsrcSync,SIGNAL(finished(int)),this,SLOT(pkgsrcSyncDone(int)));
+    connect(pkgsrcSync,SIGNAL(readyRead()),this,SLOT(pkgsrcSyncProgress()));
 }
 
 bool PkgSrc::downloadStart()
@@ -175,7 +180,7 @@ bool PkgSrc::bootstrapStart()
 
     QFile bmake(bmake_exec);
     QDir bootstrap_dir(workdir);
-    if (!bmake.exists()&&bootstrap_dir.exists(workdir)&&!pkgsrcBootstrap->isOpen()&&!pkgsrcBmake->isOpen()) {
+    if (!bmake.exists()&&bootstrap_dir.exists(workdir)&&!pkgsrcBootstrap->isOpen()&&!pkgsrcBmake->isOpen()&&!pkgsrcSync->isOpen()) {
         QStringList args;
         QString mkIncFileName = "mk-fragment.conf";
         QFile mkIncFile(workdir+"/"+mkIncFileName);
@@ -287,7 +292,7 @@ bool PkgSrc::dirClean(QString dirName)
 bool PkgSrc::bmakeStart(QString pkg, QString cat, QString options, QString action)
 {
     bool status=false;
-    if (!pkg.isEmpty()&&!cat.isEmpty()&&!action.isEmpty()&&!pkgsrcBmake->isOpen()&&!pkgsrcBootstrap->isOpen()) {
+    if (!pkg.isEmpty()&&!cat.isEmpty()&&!action.isEmpty()&&!pkgsrcBmake->isOpen()&&!pkgsrcBootstrap->isOpen()&&!pkgsrcSync->isOpen()) {
         QStringList args;
         args << action;
         if (action == "install") {
@@ -803,6 +808,46 @@ void PkgSrc::initPkgsrcBootstrap(int status)
         }
         else {
             emit pkgsrcReady();
+        }
+    }
+}
+
+void PkgSrc::pkgsrcSyncDone(int status)
+{
+    pkgsrcSync->close();
+    QFile askpass(pkgHome()+"/tmp/pkgsrc_accept_key.sh");
+    if (askpass.exists()) {
+        askpass.remove();
+    }
+    emit pkgsrcUpdateFinished(status);
+}
+
+void PkgSrc::pkgsrcSyncProgress()
+{
+    emit pkgsrcUpdateStatus(pkgsrcSync->readAll());
+}
+
+void PkgSrc::updatePkgsrc()
+{ // TODO! check for cvs, build if req, ssh is also req, check for that as well
+    if (!pkgsrcBmake->isOpen()&&!pkgsrcBootstrap->isOpen()) {
+        QFile askpass(pkgHome()+"/tmp/pkgsrc_accept_key.sh");
+        if (askpass.open(QIODevice::WriteOnly)) {
+            QTextStream textStream(&askpass);
+            textStream << "#!/bin/sh\n";
+            textStream << "echo yes\n";
+            askpass.close();
+        }
+
+        if (askpass.exists()) {
+            QStringList args;
+            args << "update" << "-dP";
+            QProcessEnvironment cvsEnv = QProcessEnvironment::systemEnvironment();
+            askpass.setPermissions(QFile::ExeOwner|QFile::ReadOwner|QFile::WriteOwner);
+            cvsEnv.insert("CVS_RSH","ssh");
+            cvsEnv.insert("SSH_ASKPASS",askpass.fileName());
+            pkgsrcSync->setProcessEnvironment(cvsEnv);
+            pkgsrcSync->setWorkingDirectory(pkgHome()+"/pkgsrc");
+            pkgsrcSync->start("cvs", args);
         }
     }
 }
