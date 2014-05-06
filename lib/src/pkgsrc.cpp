@@ -290,6 +290,9 @@ bool PkgSrc::bmakeStart(QString pkg, QString cat, QString options, QString actio
     if (!pkg.isEmpty()&&!cat.isEmpty()&&!action.isEmpty()&&!pkgsrcBmake->isOpen()&&!pkgsrcBootstrap->isOpen()) {
         QStringList args;
         args << action;
+        if (action == "install") {
+            args << "clean" << "clean-depends";
+        }
         int uid = 0;
         uid = getuid();
         QString bmake_exec = bmakeExec();
