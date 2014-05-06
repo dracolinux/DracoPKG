@@ -53,6 +53,9 @@ signals:
     void packageNameResult(QString name);
     // packages vulns
     void packagesVulnsResult(QStringList result);
+    // package remove
+    void packageRemoveResult(int status);
+    void packageRemoveStatus(QString data);
     
 public slots:
     // Download pkgsrc
@@ -85,8 +88,10 @@ public slots:
     bool packageVersionRequest(QString pkg, QString cat);
     // package name
     bool packageNameRequest(QString pkg, QString cat);
-    // packacges vulns
+    // packages vulns
     void packagesVulnsRequest();
+    // package remove
+    bool packageRemove(QString pkg, int recursive);
 
 private slots:
     bool dirClean(QString dirName);
@@ -117,12 +122,15 @@ private slots:
     void pkgNameDone(int status);
     // packages fetch vulns list
     void pkgVulnDownloadDone(int status);
-    // packacges vulns check
+    // packages vulns check
     void pkgVulnCheckDone(int status);
     // pkg home
     QString pkgHome();
     // bmake exec
     QString bmakeExec();
+    // package remove
+    void pkgRemoveDone(int status);
+    void pkgRemoveProgress();
 
 private:
     // Download pkgsrc
@@ -149,8 +157,10 @@ private:
     QProcess *pkgName;
     // packages fetch vulns list
     QProcess *pkgVulnDownload;
-    // packacges vulns check
+    // packages vulns check
     QProcess *pkgVulnCheck;
+    // package remove
+    QProcess *pkgRemove;
 };
 
 #endif // PKGSRC_H
