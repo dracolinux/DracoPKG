@@ -60,12 +60,7 @@ signals:
     void pkgsrcReady();
     
 public slots:
-    // Download pkgsrc
-    bool downloadStart();
-    // Extract pkgsrc
-    bool extractStart();
-    // Bootsrap pkgsrc
-    bool bootstrapStart();
+    // Bootstrap pkgsrc
     bool bootstrapClean();
     bool bootstrapActive();
     // pkgsrc bmake
@@ -98,6 +93,12 @@ public slots:
     void initPkgsrc();
 
 private slots:
+    // Download pkgsrc
+    bool downloadStart();
+    // Extract pkgsrc
+    bool extractStart();
+    // Bootstrap pkgsrc
+    bool bootstrapStart();
     bool dirClean(QString dirName);
     // Download pkgsrc
     void downloadProgress(qint64 start, qint64 end);
