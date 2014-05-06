@@ -58,6 +58,9 @@ signals:
     void packageRemoveStatus(QString data);
     // init pkgsrc done
     void pkgsrcReady();
+    // update pkgsrc
+    void pkgsrcUpdateStatus(QString data);
+    void pkgsrcUpdateFinished(int status);
     
 public slots:
     // Bootstrap pkgsrc
@@ -91,6 +94,8 @@ public slots:
     bool packageRemove(QString pkg, int recursive);
     // init pkgsrc
     void initPkgsrc();
+    // update pkgsrc
+    void updatePkgsrc();
 
 private slots:
     // Download pkgsrc
@@ -138,6 +143,9 @@ private slots:
     void pkgRemoveProgress();
     // init pkgsrc
     void initPkgsrcBootstrap(int status);
+    // update pkgsrc
+    void pkgsrcSyncDone(int status);
+    void pkgsrcSyncProgress();
 
 private:
     // Download pkgsrc
@@ -168,6 +176,8 @@ private:
     QProcess *pkgVulnCheck;
     // package remove
     QProcess *pkgRemove;
+    // pkgsrc sync
+    QProcess *pkgsrcSync;
 };
 
 #endif // PKGSRC_H
