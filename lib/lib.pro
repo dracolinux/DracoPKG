@@ -35,17 +35,7 @@ DESTDIR                          = build
 OBJECTS_DIR                      = $${DESTDIR}/.obj
 MOC_DIR                          = $${DESTDIR}/.moc
 
-isEmpty(PREFIX) {
-    PREFIX                       = /usr/local
-}
-
-isEmpty(INCLUDEDIR) {
-    INCLUDEDIR                   = $${PREFIX}/include
-}
-
-isEmpty(DOCDIR) {
-    DOCDIR                       = $${PREFIX}/share/doc
-}
+include(../DracoPKG.pri)
 
 target.path                      = $${PREFIX}/lib$${LIBSUFFIX}
 target_docs.path                 = $${DOCDIR}/$${TEMPLATE}$${TARGET}-$${VERSION}
@@ -63,7 +53,3 @@ QMAKE_CLEAN                     += $${DESTDIR}/*
 INCLUDEPATH                     += "$${PREFIX}/include"
 LIBS                            += -L"$${PREFIX}/lib$${LIBSUFFIX}"
 
-message("PREFIX: $$PREFIX")
-message("INCLUDEDIR: $${INCLUDEDIR}")
-message("LIBSUFFIX: $${LIBSUFFIX}")
-message("DOCDIR: $${DOCDIR}")
