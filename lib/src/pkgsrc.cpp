@@ -229,9 +229,12 @@ void PkgSrc::bootstrapDone(int status)
 {
     pkgsrcBootstrap->close();
     bootstrapClean();
-    bmakeStart("pkgclean","pkgtools","","install");
+    //bmakeStart("pkgclean","pkgtools","","install");
 
     emit bootstrapFinished(status);
+    if (status==0) {
+      emit pkgsrcReady();
+    }
 }
 
 void PkgSrc::bootstrapProgress()
