@@ -7,7 +7,7 @@
 
 #include <QCoreApplication>
 #include <QtDBus>
-#include <DracoPKG/dracopkg.h>
+#include <dracopkg.h>
 
 int main(int argc, char *argv[])
 {
