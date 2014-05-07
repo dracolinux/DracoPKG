@@ -17,6 +17,7 @@ PkgSrc::PkgSrc(QObject *parent) :
 
     pkgsrcExtract = new QProcess(this);
     pkgsrcExtract->setProcessChannelMode(QProcess::MergedChannels);
+    connect(pkgsrcExtract,SIGNAL(started()),this,SLOT(extractStartEmit()));
     connect(pkgsrcExtract,SIGNAL(finished(int)),this,SLOT(extractDone(int)));
     connect(pkgsrcExtract,SIGNAL(readyRead()),this,SLOT(extractProgress()));
 
@@ -94,6 +95,7 @@ bool PkgSrc::downloadStart()
         pkgsrcDownload->get("pkgsrc.tar.xz", pkgsrcDownloadFile);
         pkgsrcDownload->get("pkgsrc.tar.xz.MD5", pkgsrcDownloadMd5);
         pkgsrcDownload->close();
+        emit downloadStarted();
         return true;
     }
     else {
@@ -170,6 +172,11 @@ void PkgSrc::extractDone(int status)
 void PkgSrc::extractProgress()
 {
     emit extractStatus(pkgsrcExtract->readAll());
+}
+
+void PkgSrc::extractStartEmit()
+{
+    emit extractStarted();
 }
 
 bool PkgSrc::bootstrapStart()

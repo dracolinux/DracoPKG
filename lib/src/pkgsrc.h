@@ -27,9 +27,11 @@ public:
     
 signals:
     // Download pkgsrc
+    void downloadStarted();
     void downloadStatus(qint64 start, qint64 end);
     void downloadFinished(int status);
     // Extract pkgsrc
+    void extractStarted();
     void extractStatus(QString data);
     void extractFinished(int status);
     // Bootstrap pkgsrc
@@ -102,6 +104,7 @@ private slots:
     bool downloadStart();
     // Extract pkgsrc
     bool extractStart();
+    void extractStartEmit();
     // Bootstrap pkgsrc
     bool bootstrapStart();
     bool dirClean(QString dirName);
