@@ -43,7 +43,7 @@ target_docs.path                     = $$DOCDIR/$${TARGET}-$${VERSION}
 target_docs.files                    = doc/COPYING doc/README
 
 INSTALLS                            += target target_dbus_conf target_dbus_service target_docs
-QMAKE_CLEAN                         += $${DESTDIR}/*
+QMAKE_CLEAN                         += -r $${DESTDIR} Makefile
 QMAKE_POST_LINK                     += $$quote(strip -s $${DESTDIR}/$${TARGET}$$escape_expand(\\n\\t))
 
 INCLUDEPATH                         += "../lib/src"

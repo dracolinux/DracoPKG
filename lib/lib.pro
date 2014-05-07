@@ -44,7 +44,7 @@ target_include.path              = $${INCLUDEDIR}/$${TARGET}
 target_include.files             = $${HEADERS}
 
 INSTALLS                        += target target_docs target_include
-QMAKE_CLEAN                     += $${DESTDIR}/*
+QMAKE_CLEAN                     += -r $${DESTDIR} Makefile
 
 !CONFIG(staticlib) {
     QMAKE_POST_LINK             += strip -s $${DESTDIR}/$${TEMPLATE}$${TARGET}.so.$${VERSION}
