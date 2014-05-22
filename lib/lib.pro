@@ -35,7 +35,7 @@ MOC_DIR                          = $${DESTDIR}/.moc
 
 include(../DracoPKG.pri)
 
-target.path                      = $${PREFIX}/lib$${LIBSUFFIX}
+target.path                      = $${LIBDIR}
 target_docs.path                 = $${DOCDIR}/$${TEMPLATE}$${TARGET}-$${VERSION}
 target_docs.files                = doc/README doc/COPYING.LIB
 target_include.path              = $${INCLUDEDIR}/$${TARGET}
@@ -49,5 +49,5 @@ QMAKE_CLEAN                     += -r $${DESTDIR} Makefile
 #}
 
 INCLUDEPATH                     += "$${PREFIX}/include"
-LIBS                            += -L"$${PREFIX}/lib$${LIBSUFFIX}"
+LIBS                            += -L"$${LIBDIR}"
 
