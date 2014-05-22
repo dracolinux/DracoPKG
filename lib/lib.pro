@@ -28,8 +28,6 @@ VERSION                          = 1.0.0
 TEMPLATE                         = lib
 QT                              -= gui
 QT                              += network
-CONFIG                          += release
-CONFIG                          -= debug
 
 DESTDIR                          = build
 OBJECTS_DIR                      = $${DESTDIR}/.obj
@@ -46,9 +44,9 @@ target_include.files             = $${HEADERS}
 INSTALLS                        += target target_docs target_include
 QMAKE_CLEAN                     += -r $${DESTDIR} Makefile
 
-!CONFIG(staticlib) {
-    QMAKE_POST_LINK             += strip -s $${DESTDIR}/$${TEMPLATE}$${TARGET}.so.$${VERSION}
-}
+#!CONFIG(staticlib) {
+#    QMAKE_POST_LINK             += strip -s $${DESTDIR}/$${TEMPLATE}$${TARGET}.so.$${VERSION}
+#}
 
 INCLUDEPATH                     += "$${PREFIX}/include"
 LIBS                            += -L"$${PREFIX}/lib$${LIBSUFFIX}"
