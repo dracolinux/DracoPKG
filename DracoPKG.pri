@@ -1,3 +1,6 @@
+VERSION = 20140508
+DEFINES += APPV=\"\\\"$${VERSION}\\\"\"
+
 isEmpty(PREFIX) {
     PREFIX                           = /usr/local
 }

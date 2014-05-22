@@ -17,7 +17,7 @@ CONFIG(libpkgsrc) {
 
 QT                                  += core dbus network xml
 QT                                  -= gui
-VERSION                              = 1.0.0
+#VERSION                              = 1.0.0
 CONFIG                              += console
 CONFIG                              -= app_bundle
 TEMPLATE                             = app

@@ -24,7 +24,7 @@ CONFIG(libpkgsrc) {
     SOURCES                     += src/pkgyum.cpp
 }
 
-VERSION                          = 1.0.0
+#VERSION                          = 1.0.0
 TEMPLATE                         = lib
 QT                              -= gui
 QT                              += network
