@@ -17,7 +17,7 @@ OBJECTS_DIR                          = $${DESTDIR}/.obj
 
 include(../../DracoPKG.pri)
 
-QMAKE_CLEAN                         += -r $${DESTDIR} Makefile
+QMAKE_CLEAN                         += -r $${DESTDIR} Makefile main.moc
 
 INCLUDEPATH                         += "../../lib/src"
 LIBS                                += -L"$${PREFIX}/lib$${LIBSUFFIX}"
