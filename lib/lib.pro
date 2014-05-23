@@ -22,6 +22,8 @@ CONFIG(libpkgsrc) {
     SOURCES                     += src/pkgsrc.cpp
     HEADERS                     += src/pkgyum.h
     SOURCES                     += src/pkgyum.cpp
+    HEADERS                     += src/pkgin.h
+    SOURCES                     += src/pkgin.cpp
 }
 
 #VERSION                          = 1.0.0
@@ -50,4 +52,3 @@ QMAKE_CLEAN                     += -r $${DESTDIR} Makefile
 
 INCLUDEPATH                     += "$${PREFIX}/include"
 LIBS                            += -L"$${LIBDIR}"
-

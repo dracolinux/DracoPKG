@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     QDBusConnection::systemBus().registerObject("/pkgsrc", &dracopkg.pkgsrc, QDBusConnection::ExportAllContents);
     QDBusConnection::systemBus().registerObject("/pkgyum", &dracopkg.pkgyum, QDBusConnection::ExportAllContents);
     //QDBusConnection::systemBus().registerObject("/pkginstall", &dracopkg.pkginstall, QDBusConnection::ExportAllContents);
-    //QDBusConnection::systemBus().registerObject("/pkgin", &dracopkg.pkgin, QDBusConnection::ExportAllContents);
+    QDBusConnection::systemBus().registerObject("/pkgin", &dracopkg.pkgin, QDBusConnection::ExportAllContents);
     //QDBusConnection::systemBus().registerObject("/pkgtools", &dracopkg.pkgtools, QDBusConnection::ExportAllContents);
 
     return a.exec();

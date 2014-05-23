@@ -12,6 +12,7 @@
 #include "DracoPKG_global.h"
 #include "pkgsrc.h"
 #include "pkgyum.h"
+#include "pkgin.h"
 
 class DRACOPKGSHARED_EXPORT DracoPKG
 {
@@ -19,6 +20,7 @@ public:
     DracoPKG();
     PkgSrc pkgsrc;
     PkgYum pkgyum;
+    PkgIn pkgin;
 };
 
 #endif // DRACOPKG_H
