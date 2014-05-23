@@ -38,7 +38,7 @@ private slots:
     bool updatesActive();
     void logUpdates(QString data);
     void updatesDone(int status);
-    void updatesAvail(int updates);
+    void updatesAvail(QString updates);
     void sysupTrayActivated();
 
 private:

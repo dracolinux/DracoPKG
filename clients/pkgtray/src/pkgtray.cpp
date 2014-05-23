@@ -38,11 +38,11 @@ bool PKGTray::pkgcon()
     if (bus.isConnected()) {
         QDBusInterface iface(DBUS_SERVICE, DBUS_PATH, DBUS_INTERFACE, bus);
         if (iface.isValid() && !updatesActive()) {
-		qWarning("OK");
             status = true;
             bus.connect(DBUS_SERVICE, DBUS_PATH, DBUS_INTERFACE,"installUpdatesStatus",this,SLOT(logUpdates(QString)));
             bus.connect(DBUS_SERVICE, DBUS_PATH, DBUS_INTERFACE,"installUpdatesFinished",this,SLOT(updatesDone(int)));
-            bus.connect(DBUS_SERVICE, DBUS_PATH, DBUS_INTERFACE,"checkUpdatesResult",this,SLOT(updatesAvail(int)));
+            //bus.connect(DBUS_SERVICE, DBUS_PATH, DBUS_INTERFACE,"checkUpdatesResult",this,SLOT(updatesAvail(int)));
+            bus.connect(DBUS_SERVICE, DBUS_PATH, DBUS_INTERFACE,"checkUpdatesResultText",this,SLOT(updatesAvail(QString)));
             iface.call("checkUpdatesRequest");
         }
     }
@@ -99,13 +99,13 @@ void PKGTray::updatesDone(int status)
     busy = false;
 }
 
-void PKGTray::updatesAvail(int updates)
+void PKGTray::updatesAvail(QString updates)
 {
-    if (updates>0 && !updatesActive() && !sysupTrayIcon && !busy) {
+    if (!updates.isEmpty() && !updatesActive() && !sysupTrayIcon && !busy) {
         if (QSystemTrayIcon::isSystemTrayAvailable()) {
             sysupTrayIcon = new QSystemTrayIcon();
             sysupTrayIcon->setIcon(QIcon(":/res/updates.png"));
-            sysupTrayIcon->setToolTip(tr("Software updates available"));
+            sysupTrayIcon->setToolTip(tr("Software updates available:")+"<br><br>"+updates);
             sysupTrayIcon->show();
 
             connect(sysupTrayIcon,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,SLOT(sysupTrayActivated()));
@@ -121,7 +121,7 @@ void PKGTray::sysupTrayActivated()
         QPixmap pix(":/res/updates2.png");
         msgBox.setIconPixmap(pix);
         msgBox.setWindowTitle("Software updates are available");
-        msgBox.setInformativeText("<p>Found software updates. Do you want to install them? They keep your system safe and stuff ...</p>");
+        msgBox.setInformativeText("<p>Found software uapdates. Do you want to install them? They keep your system safe and stuff ...</p>");
         msgBox.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::Yes);
 
@@ -138,7 +138,7 @@ void PKGTray::sysupTrayActivated()
             break;
         }
 
-        delete sysupTrayIcon;
+        sysupTrayIcon->deleteLater();
         sysupTrayIcon = 0;
 
         if (update) {
