@@ -1,7 +1,7 @@
 Summary: Package Management tools for DracoLinux
 Name: DracoPKG
 
-Version: 20140523
+Version: 20140524
 Release: 1%{dist}
 License: GPLv2
 
