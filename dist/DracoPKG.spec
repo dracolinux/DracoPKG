@@ -16,7 +16,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildRequires: qt-devel
 Requires: qt
-Requires: gcc-g++
+Requires: gcc-c++
 
 %description
 Package Management tools for DracoLinux.
