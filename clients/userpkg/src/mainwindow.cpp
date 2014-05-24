@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //ui->pkg->setUniformItemSizes(true);
     //ui->cat->setUniformItemSizes(true);
     ui->pushButton->setEnabled(false);
-    //ui->queue->setHeaderHidden(false);
+    ui->queue->setHeaderHidden(false);
 
     tray = new QSystemTrayIcon(this);
 
