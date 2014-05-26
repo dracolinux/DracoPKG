@@ -1,4 +1,0 @@
-UserPKG
-=======
-
-Unprivileged package manager.
