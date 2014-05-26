@@ -7,7 +7,7 @@
 
 #include <QCoreApplication>
 #include <QtDBus>
-#include <PkgSrc/pkgsrc.h>
+#include <pkgsrc.h>
 
 int main(int argc, char *argv[])
 {

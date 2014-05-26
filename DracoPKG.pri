@@ -1,5 +1,12 @@
+VERSION = 20140525
+DEFINES += APPV=\"\\\"$${VERSION}\\\"\"
+
 isEmpty(PREFIX) {
     PREFIX                           = /usr/local
+}
+
+isEmpty(LIBDIR) {
+	LIBDIR				= $${PREFIX}/lib$${LIBSUFFIX}
 }
 
 isEmpty(DBUS_CONF) {
@@ -23,6 +30,7 @@ isEmpty(ADMIN_GROUP) {
 }
 
 message("PREFIX: $$PREFIX")
+message("LIBDIR: $$LIBDIR")
 message("DBUS_CONF: $${DBUS_CONF}")
 message("DBUS_SERVICE: $${DBUS_SERVICE}")
 message("LIBSUFFIX: $${LIBSUFFIX}")

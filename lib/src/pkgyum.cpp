@@ -42,8 +42,11 @@ void PkgYum::checkUpdatesDone()
     QStringList pkgs = result.split("\n",QString::SkipEmptyParts);
     for (int i = 0; i < pkgs.size(); ++i) {
         QString line = pkgs.at(i);
-        if (!line.contains("Loaded plugins")&&!line.contains("Loading mirror")) {
-            text.append(line);
+        if (!line.contains("Loaded plugins")&&!line.contains("mirror")) {
+            QStringList sort = line.split(" ",QString::SkipEmptyParts);
+            if (!sort.isEmpty()) {
+                text.append(sort.takeFirst()+"<br>");
+            }
             updates++;
         }
     }

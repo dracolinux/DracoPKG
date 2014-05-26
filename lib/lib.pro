@@ -22,14 +22,14 @@ CONFIG(libpkgsrc) {
     SOURCES                     += src/pkgsrc.cpp
     HEADERS                     += src/pkgyum.h
     SOURCES                     += src/pkgyum.cpp
+    HEADERS                     += src/pkgin.h
+    SOURCES                     += src/pkgin.cpp
 }
 
-VERSION                          = 1.0.0
+#VERSION                          = 1.0.0
 TEMPLATE                         = lib
 QT                              -= gui
 QT                              += network
-CONFIG                          += release
-CONFIG                          -= debug
 
 DESTDIR                          = build
 OBJECTS_DIR                      = $${DESTDIR}/.obj
@@ -37,7 +37,7 @@ MOC_DIR                          = $${DESTDIR}/.moc
 
 include(../DracoPKG.pri)
 
-target.path                      = $${PREFIX}/lib$${LIBSUFFIX}
+target.path                      = $${LIBDIR}
 target_docs.path                 = $${DOCDIR}/$${TEMPLATE}$${TARGET}-$${VERSION}
 target_docs.files                = doc/README doc/COPYING.LIB
 target_include.path              = $${INCLUDEDIR}/$${TARGET}
@@ -46,10 +46,9 @@ target_include.files             = $${HEADERS}
 INSTALLS                        += target target_docs target_include
 QMAKE_CLEAN                     += -r $${DESTDIR} Makefile
 
-!CONFIG(staticlib) {
-    QMAKE_POST_LINK             += strip -s $${DESTDIR}/$${TEMPLATE}$${TARGET}.so.$${VERSION}
-}
+#!CONFIG(staticlib) {
+#    QMAKE_POST_LINK             += strip -s $${DESTDIR}/$${TEMPLATE}$${TARGET}.so.$${VERSION}
+#}
 
 INCLUDEPATH                     += "$${PREFIX}/include"
-LIBS                            += -L"$${PREFIX}/lib$${LIBSUFFIX}"
-
+LIBS                            += -L"$${LIBDIR}"

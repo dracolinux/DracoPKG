@@ -17,7 +17,7 @@ CONFIG(libpkgsrc) {
 
 QT                                  += core dbus network xml
 QT                                  -= gui
-VERSION                              = 1.0.0
+#VERSION                              = 1.0.0
 CONFIG                              += console
 CONFIG                              -= app_bundle
 TEMPLATE                             = app
@@ -47,7 +47,7 @@ QMAKE_CLEAN                         += -r $${DESTDIR} Makefile
 QMAKE_POST_LINK                     += $$quote(strip -s $${DESTDIR}/$${TARGET}$$escape_expand(\\n\\t))
 
 INCLUDEPATH                         += "../lib/src"
-LIBS                                += -L"$${PREFIX}/lib$${LIBSUFFIX}"
+LIBS                                += -L"$${LIBDIR}"
 LIBS                                += -L"../lib/build"
 LIBS                                += "-l$${TARGET}"
 
