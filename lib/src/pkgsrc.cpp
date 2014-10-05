@@ -882,3 +882,11 @@ void PkgSrc::updatePkgsrc()
         }
     }
 }
+
+QStringList PkgSrc::packageUpdates()
+{
+    QStringList output;
+    // TODO! gen list here
+    emit packageUpdatesResult(output);
+    return output;
+}

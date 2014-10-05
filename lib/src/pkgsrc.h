@@ -63,7 +63,8 @@ signals:
     // update pkgsrc
     void pkgsrcUpdateStatus(QString data);
     void pkgsrcUpdateFinished(int status);
-    
+    void packageUpdatesResult(QStringList packages);
+
 public slots:
     // Bootstrap pkgsrc
     bool bootstrapClean();
@@ -98,6 +99,8 @@ public slots:
     void initPkgsrc();
     // update pkgsrc
     void updatePkgsrc();
+    // update pkgsrc
+    QStringList packageUpdates();
 
 private slots:
     // Download pkgsrc
@@ -146,7 +149,7 @@ private slots:
     void pkgRemoveProgress();
     // init pkgsrc
     void initPkgsrcBootstrap(int status);
-    // update pkgsrc
+    // sync pkgsrc
     void pkgsrcSyncDone(int status);
     void pkgsrcSyncProgress();
 
