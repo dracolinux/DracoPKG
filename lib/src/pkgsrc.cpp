@@ -554,7 +554,19 @@ QStringList PkgSrc::packageList(QString cat, QString search)
                 if (folder.isDir()) {
                     QFile Makefile(folder.filePath()+"/Makefile");
                     if (Makefile.exists(folder.filePath()+"/Makefile") && folder.fileName().contains(search)) {
-                        output << categories.at(i)+"|"+folder.fileName();
+                        QString outputString;
+                        outputString.append(categories.at(i));
+                        outputString.append("|"+folder.fileName());
+                        if(Makefile.open(QIODevice::ReadOnly)) {
+                            QTextStream stream(&Makefile);
+                            while(!stream.atEnd()) {
+                                QString line = stream.readLine();
+                                if (line.contains("COMMENT=")) {
+                                    outputString.append( "|"+line.replace("COMMENT=","").trimmed());
+                                }
+                            }
+                        }
+                        output<<outputString;
                     }
                 }
             }
@@ -567,12 +579,21 @@ QStringList PkgSrc::packageList(QString cat, QString search)
             if (folder.isDir()) {
                 QFile Makefile(folder.filePath()+"/Makefile");
                 if (Makefile.exists(folder.filePath()+"/Makefile")) {
+                    QString outputString;
                     if (!cat.isEmpty()) {
-                        output << cat+"|"+folder.fileName();
+                        outputString.append(cat+"|");
                     }
-                    else {
-                        output << folder.fileName();
+                    outputString.append(folder.fileName());
+                    if(Makefile.open(QIODevice::ReadOnly)) {
+                        QTextStream stream(&Makefile);
+                        while(!stream.atEnd()) {
+                            QString line = stream.readLine();
+                            if (line.contains("COMMENT=")) {
+                                outputString.append( "|"+line.replace("COMMENT=","").trimmed());
+                            }
+                        }
                     }
+                    output<<outputString;
                 }
             }
         }
