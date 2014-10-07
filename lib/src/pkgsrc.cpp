@@ -886,7 +886,47 @@ void PkgSrc::updatePkgsrc()
 QStringList PkgSrc::packageUpdates()
 {
     QStringList output;
-    // TODO! gen list here
-    emit packageUpdatesResult(output);
+    QString workdir = pkgHome()+"/.pkgdb";
+    QDir pkgsrc(workdir);
+    QFileInfoList pkgsrcList(pkgsrc.entryInfoList(QDir::NoDotAndDotDot|QDir::AllDirs));
+    foreach (QFileInfo folder, pkgsrcList) {
+        QString pkgpath;
+        QString pkgname;
+        QString pkgversion;
+        QString newpkgversion;
+        if (folder.isDir()) {
+            QFile Makefile(folder.filePath()+"/+BUILD_INFO");
+            if (Makefile.exists()) {
+                if(Makefile.open(QIODevice::ReadOnly)) {
+                    QTextStream stream(&Makefile);
+                    while(!stream.atEnd()) {
+                        QString line = stream.readLine();
+                        if (line.contains("PKGPATH=")) {
+                            pkgpath = line.replace("PKGPATH=","").trimmed();
+                            pkgversion = folder.fileName().mid(folder.fileName().lastIndexOf("-")).replace("-","");
+                            pkgname = folder.fileName().left(folder.fileName().lastIndexOf("-"));
+                            if (!pkgpath.isEmpty()&&!pkgversion.isEmpty()&&!pkgname.isEmpty()) {
+                               QProcess pkg_info_proc;
+                               QStringList pkg_info_args;
+                               pkg_info_args << "show-var";
+                               QProcessEnvironment buildEnv = QProcessEnvironment::systemEnvironment();
+                               buildEnv.insert("VARNAME","PKGVERSION");
+                               pkg_info_proc.setProcessEnvironment(buildEnv);
+                               pkg_info_proc.setWorkingDirectory(pkgHome()+"/pkgsrc/"+pkgpath);
+                               pkg_info_proc.setProcessChannelMode(QProcess::MergedChannels);
+                               pkg_info_proc.start(pkgHome()+"/pkg/bin/bmake",pkg_info_args);
+                               pkg_info_proc.waitForFinished(-1);
+                               newpkgversion = pkg_info_proc.readAll().trimmed();
+                               if (pkgversion != newpkgversion) {
+                                   output << pkgpath+"|"+pkgname+"|"+pkgversion+"|"+newpkgversion;
+                               }
+                            }
+                            //qDebug() << pkgpath << pkgname << pkgversion << "vs." << newpkgversion;
+                        }
+                    }
+                }
+            }
+        }
+    }
     return output;
 }

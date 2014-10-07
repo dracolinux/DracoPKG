@@ -63,7 +63,7 @@ signals:
     // update pkgsrc
     void pkgsrcUpdateStatus(QString data);
     void pkgsrcUpdateFinished(int status);
-    void packageUpdatesResult(QStringList packages);
+    //void packageUpdatesResult(QStringList packages);
 
 public slots:
     // Bootstrap pkgsrc
