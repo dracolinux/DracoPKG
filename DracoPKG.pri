@@ -1,4 +1,4 @@
-VERSION = 20141005
+VERSION = 20141007
 DEFINES += APPV=\"\\\"$${VERSION}\\\"\"
 
 isEmpty(PREFIX) {
