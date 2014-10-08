@@ -96,7 +96,7 @@ public slots:
     // package remove
     bool packageRemove(QString pkg, int recursive);
     // init pkgsrc
-    void initPkgsrc();
+    void initPkgsrc(int threads, QString gcc, int branch, QString options);
     // update pkgsrc
     void updatePkgsrc();
     // update pkgsrc
@@ -184,6 +184,10 @@ private:
     QProcess *pkgRemove;
     // pkgsrc sync
     QProcess *pkgsrcSync;
+    int initPkgsrcThreads;
+    QString initPkgsrcCC;
+    int initPkgsrcBranch;
+    QString initPkgsrcOptions;
 };
 
 #endif // PKGSRC_H

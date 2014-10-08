@@ -11,6 +11,10 @@
 PkgSrc::PkgSrc(QObject *parent) :
     QObject(parent)
 {
+    initPkgsrcThreads = 0;
+    initPkgsrcCC = "";
+    initPkgsrcBranch = 0;
+    initPkgsrcOptions = "";
     pkgsrcDownload = new QFtp(this);
     connect(pkgsrcDownload,SIGNAL(done(bool)),SLOT(downloadDone()));
     connect(pkgsrcDownload,SIGNAL(dataTransferProgress(qint64,qint64)),this,SLOT(downloadProgress(qint64,qint64)));
@@ -91,7 +95,10 @@ bool PkgSrc::downloadStart()
         pkgsrcDownload->login("ftp","ftp");
         pkgsrcDownload->cd("pub");
         pkgsrcDownload->cd("pkgsrc");
-        pkgsrcDownload->cd("stable");
+        if (initPkgsrcBranch==1)
+            pkgsrcDownload->cd("current");
+        else
+            pkgsrcDownload->cd("stable");
         pkgsrcDownload->get("pkgsrc.tar.xz", pkgsrcDownloadFile);
         pkgsrcDownload->get("pkgsrc.tar.xz.MD5", pkgsrcDownloadMd5);
         pkgsrcDownload->close();
@@ -156,7 +163,10 @@ bool PkgSrc::extractStart()
     if (pkgsrcTar.exists(pkgsrc_tarball) && !pkgsrcBootstrap->isOpen() && !pkgsrcBmake->isOpen()) {
         QStringList args;
         args << "xvf" << pkgsrc_tarball << "-C" << pkgHome();
-        pkgsrcExtract->start("tar",args);
+        QString tar = "tar";
+        //if (Q_OS_NetBSD)
+          //  tar = "gtar";
+        pkgsrcExtract->start(tar,args);
         status = true;
     }
 
@@ -181,6 +191,10 @@ void PkgSrc::extractStartEmit()
 
 bool PkgSrc::bootstrapStart()
 {
+    int jobs = 2;
+    if (initPkgsrcThreads>0 && initPkgsrcThreads!=jobs)
+        jobs=initPkgsrcThreads;
+
     bool status = false;
     QString bmake_exec = bmakeExec();
     QString workdir = pkgHome()+"/pkgsrc/bootstrap";
@@ -197,11 +211,24 @@ bool PkgSrc::bootstrapStart()
         if (mkIncFile.open(QIODevice::WriteOnly)) {
             args << "--mk-fragment="+mkIncFileName;
             QTextStream textStream(&mkIncFile);
-            textStream << "MAKE_JOBS = 4\n";
+            textStream << "MAKE_JOBS = "+QString::number(jobs)+"\n";
             textStream << "SKIP_LICENSE_CHECK = yes\n";
             textStream << "ALLOW_VULNERABLE_PACKAGES = yes\n";
             textStream << "FAILOVER_FETCH = yes\n";
             textStream << "FAM_DEFAULT = gamin\n";
+            textStream << "X11_TYPE = modular\n";
+            textStream << "PREFER.ncurses=native\n"; // Maybe use pkgsrc ncurses?
+            if (!initPkgsrcCC.isEmpty()) {
+                textStream << "GCC_REQD+="+initPkgsrcCC+"\n";
+                textStream << ".for GCCPKG in lang/gcc"+initPkgsrcCC+" pkgtools/digest archivers/pax converters/p5-Unicode-EastAsianWidth textproc/p5-Text-Unidecode converters/help2man misc/p5-Locale-libintl devel/p5-gettext devel/nbpatch devel/gettext-lib devel/libtool-base archivers/bzip2 archivers/zip archivers/unzip converters/libiconv devel/bison devel/flex devel/gmp devel/autoconf devel/gettext-tools devel/gmake devel/gtexinfo devel/m4 devel/zlib lang/perl5 math/mpfr net/tnftp pkgtools/pkg_install-info sysutils/checkperms\n";
+                textStream << ".       if ${PKGPATH} == ${GCCPKG}\n";
+                textStream << "GCC_REQD=\n";
+                textStream << ".       endif\n";
+                textStream << ".endfor\n";
+            }
+            if (!initPkgsrcOptions.isEmpty()) {
+                textStream << "PKG_DEFAULT_OPTIONS+="+initPkgsrcOptions+"\n";
+            }
             mkIncFile.close();
         }
 
@@ -810,8 +837,19 @@ bool PkgSrc::packageRemove(QString pkg, int recursive)
     return status;
 }
 
-void PkgSrc::initPkgsrc()
+void PkgSrc::initPkgsrc(int threads, QString gcc, int branch, QString options)
 {
+    qDebug() << threads << gcc << branch << options;
+    if (threads>0)
+        initPkgsrcThreads=threads;
+    if (!gcc.isEmpty())
+        initPkgsrcCC=gcc;
+    if (!options.isEmpty())
+        initPkgsrcOptions=options;
+
+    if (branch == 1)
+        initPkgsrcBranch=1;
+
     connect(this,SIGNAL(extractFinished(int)),this,SLOT(initPkgsrcBootstrap(int)));
     connect(this,SIGNAL(downloadFinished(int)),this,SLOT(extractStart()));
 
