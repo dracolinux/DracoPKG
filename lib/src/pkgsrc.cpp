@@ -943,14 +943,15 @@ QStringList PkgSrc::packageUpdates()
                             pkgpath = line.replace("PKGPATH=","").trimmed();
                             pkgversion = folder.fileName().mid(folder.fileName().lastIndexOf("-")).replace("-","");
                             pkgname = folder.fileName().left(folder.fileName().lastIndexOf("-"));
-                            if (!pkgpath.isEmpty()&&!pkgversion.isEmpty()&&!pkgname.isEmpty()) {
+                            QDir pkgdir(pkgHome()+"/pkgsrc/"+pkgpath);
+                            if (pkgdir.exists()&&!pkgversion.isEmpty()&&!pkgversion.contains("bmake")&&!pkgname.isEmpty()) {
                                QProcess pkg_info_proc;
                                QStringList pkg_info_args;
                                pkg_info_args << "show-var";
                                QProcessEnvironment buildEnv = QProcessEnvironment::systemEnvironment();
                                buildEnv.insert("VARNAME","PKGVERSION");
                                pkg_info_proc.setProcessEnvironment(buildEnv);
-                               pkg_info_proc.setWorkingDirectory(pkgHome()+"/pkgsrc/"+pkgpath);
+                               pkg_info_proc.setWorkingDirectory(pkgdir.absolutePath());
                                pkg_info_proc.setProcessChannelMode(QProcess::MergedChannels);
                                pkg_info_proc.start(pkgHome()+"/pkg/bin/bmake",pkg_info_args);
                                pkg_info_proc.waitForFinished(-1);
@@ -959,7 +960,7 @@ QStringList PkgSrc::packageUpdates()
                                    output << pkgpath+"|"+pkgname+"|"+pkgversion+"|"+newpkgversion;
                                }
                             }
-                            //qDebug() << pkgpath << pkgname << pkgversion << "vs." << newpkgversion;
+                            qDebug() << pkgpath << pkgname << pkgversion << "vs." << newpkgversion;
                         }
                     }
                 }
