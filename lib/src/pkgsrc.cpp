@@ -372,6 +372,7 @@ void PkgSrc::bmakeProgress()
 bool PkgSrc::bmakeStop()
 {
     bool status = false;
+    emit bmakeFinished(1);
     if (pkgsrcBmake->isOpen()) {
         pkgsrcBmake->close();
         if (!pkgsrcBmake->isOpen()) {
